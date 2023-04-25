@@ -1,5 +1,10 @@
+import sqlite3
 from tkinter import *
 from tkinter import ttk
+
+import add_automation
+
+database = sqlite3.connect('db-bot-collie.db')
 
 root = Tk()
 
@@ -8,6 +13,6 @@ frm = ttk.Frame(root, padding=10)
 frm.grid()
 ttk.Label(frm, text="Logo aqui").grid(column=0, row=0)
 ttk.Label(frm, text="Adicionar automação").grid(column=1, row=1, padx=10)
-ttk.Button(frm, text="+", command=root.destroy).grid(column=2, row=1)
+ttk.Button(frm, text="+", command=add_automation).grid(column=2, row=1)
 
 root.mainloop()
