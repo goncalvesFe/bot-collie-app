@@ -1,4 +1,4 @@
-# bot-collie-app
+# bot-collie-app versão 0
 ## Para ativar ambiente virtual
 
 cd app
