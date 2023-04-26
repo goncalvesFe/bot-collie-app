@@ -1,11 +1,13 @@
 import sqlite3
 import sys
 from tkinter import *
-from tkinter import ttk
 
 from pynput import keyboard
 
 database = sqlite3.connect('db-bot-collie.db')
+
+main_bg_color = '#babdc2'
+margin = 0.02
 
 def on_press(key):
     try:
@@ -25,8 +27,11 @@ def on_release(key):
 def add_automation():
     modalConfirmation = Tk()
     modalConfirmation.title('Teste modal')
-    frm = ttk.Frame(modalConfirmation, padding=10)
-    frm.grid()
+    modalConfirmation.configure(background=main_bg_color)
+    modalConfirmation.geometry("400x200")
+    modalConfirmation.resizable(True, True)
+    modalConfirmation.maxsize(width=700, height=500)
+    # modalConfirmation.minsize(width=300, height=200)
 
     def watch_keyboard():
         modalConfirmation.destroy
@@ -42,9 +47,15 @@ def add_automation():
             on_release=on_release)
         listener.start()
         # listener.stop()
-    
-    ttk.Label(frm, text="Para adicionar uma nova automação clique em começar").grid(column=0, row=0, padx=10, pady=10, columnspan=2)
-    ttk.Button(frm, text="voltar", command=modalConfirmation.destroy).grid(column=0, row=1, padx=10, pady=10)
-    ttk.Button(frm, text="começar", command=watch_keyboard).grid(column=1, row=1, padx=10, pady=10)
+
+    btn_rel_size_w = 0.4
+    btn_rel_size_h = 0.15
+    btn_rel_pos_y = 0.5
+    main_text = Label(modalConfirmation, text="Para criar uma nova automação clique em começar", bg=main_bg_color)
+    main_text.place(relx=0, rely=0, relwidth=1, relheight=0.3)
+    back_btn = Button(modalConfirmation, text="voltar", command=modalConfirmation.destroy)
+    back_btn.place(relx=margin, rely=btn_rel_pos_y, relwidth=btn_rel_size_w, relheight=btn_rel_size_h)
+    begin_btn = Button(modalConfirmation, text="começar", command=watch_keyboard)
+    begin_btn.place(relx=1 - (margin + btn_rel_size_w), rely=btn_rel_pos_y, relwidth=btn_rel_size_w, relheight=btn_rel_size_h)
 
 sys.modules[__name__] = add_automation
