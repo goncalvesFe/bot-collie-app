@@ -1,30 +1,31 @@
-import sqlite3
-import sys
 from tkinter import *
 
 from pynput import keyboard
+from save_automation import save_automation
 
-database = sqlite3.connect('db-bot-collie.db')
-
-main_bg_color = '#babdc2'
-margin = 0.02
-
-def on_press(key):
-    try:
-        print('alphanumeric key {0} pressed'.format(
-            key.char))
-    except AttributeError:
-        print('special key {0} pressed'.format(
-            key))
-
-def on_release(key):
-    print('{0} released'.format(
-        key))
-    if key == keyboard.Key.esc:
-        # Stop listener
-        return False
 
 def add_automation():
+    commands = []
+
+    def on_press(key):
+        commands.append(key)
+
+    def on_release(key):
+        if key == keyboard.Key.esc:
+            print('stop listener')
+            for command in commands:
+                print(command)
+            save_automation()
+            # Stop listener
+            return False
+
+    def watch_keyboard():
+        listener = keyboard.Listener(on_press=on_press,on_release=on_release)
+        listener.start()
+
+    main_bg_color = '#babdc2'
+    margin = 0.02
+
     modalConfirmation = Tk()
     modalConfirmation.title('Teste modal')
     modalConfirmation.configure(background=main_bg_color)
@@ -32,21 +33,6 @@ def add_automation():
     modalConfirmation.resizable(True, True)
     modalConfirmation.maxsize(width=700, height=500)
     # modalConfirmation.minsize(width=300, height=200)
-
-    def watch_keyboard():
-        modalConfirmation.destroy
-        # Collect events until released
-        # with keyboard.Listener(
-        #         on_press=on_press,
-        #         on_release=on_release) as listener:
-        #     listener.join()
-
-        # ...or, in a non-blocking fashion:
-        listener = keyboard.Listener(
-            on_press=on_press,
-            on_release=on_release)
-        listener.start()
-        # listener.stop()
 
     btn_rel_size_w = 0.4
     btn_rel_size_h = 0.15
@@ -57,5 +43,3 @@ def add_automation():
     back_btn.place(relx=margin, rely=btn_rel_pos_y, relwidth=btn_rel_size_w, relheight=btn_rel_size_h)
     begin_btn = Button(modalConfirmation, text="começar", command=watch_keyboard)
     begin_btn.place(relx=1 - (margin + btn_rel_size_w), rely=btn_rel_pos_y, relwidth=btn_rel_size_w, relheight=btn_rel_size_h)
-
-sys.modules[__name__] = add_automation

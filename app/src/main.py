@@ -1,10 +1,7 @@
-import sqlite3
 from tkinter import *
 from tkinter import ttk
 
-import add_automation
-
-database = sqlite3.connect('db-bot-collie.db')
+from add_automation import add_automation
 
 root = Tk()
 

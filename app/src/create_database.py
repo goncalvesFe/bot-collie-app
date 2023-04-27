@@ -2,7 +2,7 @@
 # https://pypi.org/project/db-sqlite3/
 import sqlite3
 
-database = sqlite3.connect('db-bot-collie.db')
+database = sqlite3.connect('db-bot-collie.db', check_same_thread=False)
 
 cursor = database.cursor()
 
