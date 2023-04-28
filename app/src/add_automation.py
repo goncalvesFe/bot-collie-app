@@ -15,7 +15,7 @@ def add_automation():
             print('stop listener')
             for command in commands:
                 print(command)
-            save_automation()
+            save_automation(commands)
             # Stop listener
             return False
 
