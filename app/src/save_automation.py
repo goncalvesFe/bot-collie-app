@@ -59,6 +59,3 @@ def save_automation(commands):
         cmd_id = cmd_id + 1
 
     database.commit()
-
-# DEPOIS TENTAR VOLTAR COM AQUELA VERIFICAÇÃO DO LISTENER DO KEYBOARD
-# TRATAR OS COMANDO PRIMEIRO LÁ ANTES DE ENVIAR PARA CÁ
