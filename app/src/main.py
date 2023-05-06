@@ -1,15 +1,41 @@
+import random
+import sqlite3
+import string
 from tkinter import *
 from tkinter import ttk
 
 root = Tk()
 
-class Application():
+class Funcs():
+    def get_automations(self):
+        print('vou buscar mais tarde')
+    def connect_database(self):
+        self.conn = sqlite3.connect('bot-collie.db', check_same_thread=False)
+        self.cursor = self.conn.cursor()
+    def disconnect_database(self):
+        self.conn.close()
+    def create_tables(self):
+        self.connect_database()
+        self.cursor.execute('CREATE TABLE IF NOT EXISTS automacao (id integer PRIMARY KEY, name text)')
+        self.cursor.execute("CREATE TABLE IF NOT EXISTS comando (id integer PRIMARY KEY, automacao_id int, command text)")
+        self.conn.commit()
+        self.disconnect_database()
+    def add_automation(self):
+        self.connect_database()
+        self.auts = self.cursor.execute('SELECT * FROM automacao').fetchall()
+        # quando for salvar o nome de uma automacao usar o padrao: automacao-id_da_aut
+        print(self.auts)
+        self.disconnect_database()
+
+class Application(Funcs):
     def __init__(self):
         self.root = root
         self.screen()
         self.screen_frames()
         self.widgets_frame_1()
         self.widgets_frame_2()
+        self.get_automations()
+        self.create_tables()
         root.mainloop()
     def screen(self):
         self.root.title('Bot Collie')
