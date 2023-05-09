@@ -2,7 +2,7 @@ from tkinter import *
 from tkinter import ttk
 
 # import pyautogui
-from add_automation import add_automation
+from add_automation_ref import add_automation
 from get_automations import get_automations
 from run_automation import run_automation
 

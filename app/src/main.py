@@ -1,14 +1,12 @@
-import random
 import sqlite3
-import string
 from tkinter import *
 from tkinter import ttk
+
+from pynput import keyboard, mouse
 
 root = Tk()
 
 class Funcs():
-    def get_automations(self):
-        print('vou buscar mais tarde')
     def connect_database(self):
         self.conn = sqlite3.connect('bot-collie.db', check_same_thread=False)
         self.cursor = self.conn.cursor()
@@ -20,22 +18,53 @@ class Funcs():
         self.cursor.execute("CREATE TABLE IF NOT EXISTS comando (id integer PRIMARY KEY, automacao_id int, command text)")
         self.conn.commit()
         self.disconnect_database()
-    def add_automation(self):
+    def save_automation(self):
+        aut_id = 1
         self.connect_database()
-        self.auts = self.cursor.execute('SELECT * FROM automacao').fetchall()
-        # quando for salvar o nome de uma automacao usar o padrao: automacao-id_da_aut
-        print(self.auts)
+        las_aut_id = self.cursor.execute('SELECT MAX(id) FROM automacao').fetchone()[0]
+        if las_aut_id != None:
+            aut_id = aut_id + las_aut_id
+        aut_name = f'automacao-{aut_id}'
+        self.cursor.execute(f"INSERT INTO automacao (name) VALUES ('{aut_name}')")
+        self.conn.commit()
         self.disconnect_database()
+        self.update_list()
+    def update_list(self):
+        self.aut_list.delete(*self.aut_list.get_children())
+        self.connect_database()
+        list = self.cursor.execute('SELECT name FROM  automacao')
+        for i in list:
+            self.aut_list.insert("", END, values=i)
+        self.disconnect_database()
+    def add_automation(self):
+        print('hora do show')
+        def on_press(key):
+            self.commands.append(key)
+            try:
+                print('alphanumeric key {0} pressed'.format(key.char))
+            except AttributeError:
+                print('special key {0} pressed'.format(key))
+        def on_release(key):
+            if key == keyboard.Key.esc:
+                print('stop listener')
+                for command in self.commands:
+                    print(command)
+                self.save_automation()
+                # Stop listener
+                return False
+        keyboard_listener = keyboard.Listener(on_press=on_press, on_release=on_release)
+        keyboard_listener.start()
 
 class Application(Funcs):
     def __init__(self):
+        self.commands = []
         self.root = root
         self.screen()
         self.screen_frames()
         self.widgets_frame_1()
         self.widgets_frame_2()
-        self.get_automations()
         self.create_tables()
+        self.update_list()
         root.mainloop()
     def screen(self):
         self.root.title('Bot Collie')
@@ -52,21 +81,31 @@ class Application(Funcs):
     def widgets_frame_1(self):
         self.logo = Label(self.frame_1, text='Logo aqui', bg='#edeff2')
         self.logo.place(relx=0, rely=0, relwidth=0.1, relheight=0.1)
-        self.btn_add_aut = Button(self.frame_1, text='Criar nova automação', bd=2, bg='#00A86B', fg='white')
+        self.btn_add_aut = Button(self.frame_1, text='Criar nova automação', command=self.show_add_aut_confirmation, bd=2, bg='#00A86B', fg='white')
         self.btn_add_aut.place(relx=0, rely=0.5, relwidth=0.23, relheight=0.30)
+    def show_add_aut_confirmation(self):
+        self.confirmation_msg = Label(self.frame_1, text='Para criar uma nova automação clique em começar', bg='#edeff2')
+        self.confirmation_msg.place(relx=0.4, rely=0, relwidth=0.4, relheight=0.1)
+        self.cancel_btn = Button(self.frame_1, text='Cancelar', command=self.clean_add_aut, bd=2, bg='#c93045', fg='white')
+        self.cancel_btn.place(relx=0.4, rely=0.5, relwidth=0.23, relheight=0.30)
+        self.add_aut_btn = Button(self.frame_1, text='Iniciar', command=self.init_msg, bd=2, bg='#00A86B', fg='white')
+        self.add_aut_btn.place(relx=0.7, rely=0.5, relwidth=0.23, relheight=0.30)
+    def clean_add_aut(self):
+        self.confirmation_msg.destroy()
+        self.cancel_btn.destroy()
+        self.add_aut_btn.destroy()
+    def init_msg(self):
+        self.clean_add_aut()
+        self.countdown_msg = Label(self.frame_1, text='Aguarde janelas minimizarem para começar', bg='#edeff2')
+        self.countdown_msg.place(relx=0.4, rely=0.3, relwidth=0.4, relheight=0.1)
+        self.add_automation()
     def widgets_frame_2(self):
-        self.aut_list = ttk.Treeview(self.frame_2, height=3, column=('col1', 'col2', 'col3', 'col4'))
+        self.aut_list = ttk.Treeview(self.frame_2, height=3, column=('col1'))
         self.aut_list.heading('#0', text='')
-        self.aut_list.heading('#1', text='codigo')
-        self.aut_list.heading('#2', text='nome')
-        self.aut_list.heading('#3', text='telefone')
-        self.aut_list.heading('#4', text='cidade')
+        self.aut_list.heading('#1', text='nome')
 
         self.aut_list.column('#0', width=1)
-        self.aut_list.column('#1', width=50)
-        self.aut_list.column('#2', width=200)
-        self.aut_list.column('#3', width=125)
-        self.aut_list.column('#4', width=125)
+        self.aut_list.column('#1', width=500)
 
         self.aut_list.place(relx=0, rely=0, relwidth=0.97, relheight=1)
 
