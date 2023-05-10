@@ -50,8 +50,7 @@ class Funcs():
         for i in list:
             self.aut_list.insert("", END, values=i)
         self.disconnect_database()
-    def add_automation(self):
-        print('hora do show')
+    def init_listeners(self):
         def on_press(key):
             self.commands.append(key)
             try:
@@ -64,17 +63,23 @@ class Funcs():
                 for command in self.commands:
                     print(command)
                 self.save_automation()
-                # Stop listener
+                # Stop listeners
+                self.mouse_listener.stop()
                 return False
-        keyboard_listener = keyboard.Listener(on_press=on_press, on_release=on_release)
-        keyboard_listener.start()
-    def temp_check_tables(self):
-        self.connect_database()
-        auts = self.cursor.execute('SELECT * FROM automacao').fetchall()
-        cmds = self.cursor.execute('SELECT * FROM comando').fetchall()
-        self.disconnect_database()
-        print('Automações: ',auts)
-        print('Comandos: ',cmds)
+        def on_move(x, y):
+            print('Pointer moved to {0}'.format((x, y)))
+        def on_click(x, y, button, pressed):
+            print('{0} at {1}'.format('Pressed' if pressed else 'Released', (x, y)))
+            if not pressed:
+                print('not pressed')
+                # Stop listener
+                # return False
+        def on_scroll(x, y, dx, dy):
+            print('Scrolled {0} at {1}'.format('down' if dy < 0 else 'up', (x, y)))
+        self.keyboard_listener = keyboard.Listener(on_press=on_press, on_release=on_release)
+        self.keyboard_listener.start()
+        self.mouse_listener = mouse.Listener(on_move=on_move, on_click=on_click, on_scroll=on_scroll)
+        self.mouse_listener.start()
 
 class Application(Funcs):
     def __init__(self):
@@ -87,7 +92,6 @@ class Application(Funcs):
         self.widgets_frame_2()
         self.create_tables()
         self.update_list()
-        self.temp_check_tables()
         root.mainloop()
     def screen(self):
         self.root.title('Bot Collie')
@@ -121,7 +125,7 @@ class Application(Funcs):
         self.clean_add_aut()
         self.countdown_msg = Label(self.frame_1, text='Aguarde janelas minimizarem para começar', bg='#edeff2')
         self.countdown_msg.place(relx=0.4, rely=0.3, relwidth=0.4, relheight=0.1)
-        self.add_automation()
+        self.init_listeners()
     def widgets_frame_2(self):
         self.aut_list = ttk.Treeview(self.frame_2, height=3, column=('col1'))
         self.aut_list.heading('#0', text='')
