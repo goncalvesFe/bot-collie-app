@@ -18,6 +18,18 @@ class Funcs():
         self.cursor.execute("CREATE TABLE IF NOT EXISTS comando (id integer PRIMARY KEY, automacao_id int, command text)")
         self.conn.commit()
         self.disconnect_database()
+    def save_commands(self):
+        self.connect_database
+        for command in self.commands:
+            if hasattr(command, 'char'):
+                insert_query = f"INSERT INTO comando (automacao_id, command) VALUES ({self.new_aut_id}, {command})"
+                self.cursor.execute(insert_query)
+            else:
+                cmd = f"'{command}'"
+                insert_query = f"INSERT INTO comando (automacao_id, command) VALUES ({self.new_aut_id}, {cmd})"
+                self.cursor.execute(insert_query)
+        self.conn.commit()
+        self.disconnect_database()
     def save_automation(self):
         aut_id = 1
         self.connect_database()
@@ -27,6 +39,8 @@ class Funcs():
         aut_name = f'automacao-{aut_id}'
         self.cursor.execute(f"INSERT INTO automacao (name) VALUES ('{aut_name}')")
         self.conn.commit()
+        self.new_aut_id = aut_id
+        self.save_commands()
         self.disconnect_database()
         self.update_list()
     def update_list(self):
@@ -54,10 +68,18 @@ class Funcs():
                 return False
         keyboard_listener = keyboard.Listener(on_press=on_press, on_release=on_release)
         keyboard_listener.start()
+    def temp_check_tables(self):
+        self.connect_database()
+        auts = self.cursor.execute('SELECT * FROM automacao').fetchall()
+        cmds = self.cursor.execute('SELECT * FROM comando').fetchall()
+        self.disconnect_database()
+        print('Automações: ',auts)
+        print('Comandos: ',cmds)
 
 class Application(Funcs):
     def __init__(self):
         self.commands = []
+        self.new_aut_id = 0
         self.root = root
         self.screen()
         self.screen_frames()
@@ -65,6 +87,7 @@ class Application(Funcs):
         self.widgets_frame_2()
         self.create_tables()
         self.update_list()
+        self.temp_check_tables()
         root.mainloop()
     def screen(self):
         self.root.title('Bot Collie')
