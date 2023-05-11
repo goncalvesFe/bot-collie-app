@@ -67,22 +67,32 @@ class Funcs():
                 self.mouse_listener.stop()
                 return False
         def on_move(x, y):
-            print('Pointer moved to {0}'.format((x, y)))
+            # print('Pointer moved to {0}'.format((x, y)))
+            pass
         def on_click(x, y, button, pressed):
-            print('{0} at {1}'.format('Pressed' if pressed else 'Released', (x, y)))
-            if not pressed:
-                print('not pressed')
-                # Stop listener
-                # return False
+            if pressed:
+                mouse_click = f'click -  x: {x}, y: {y}, button: {button}'
+                print(mouse_click)
+                self.commands.append(mouse_click)
         def on_scroll(x, y, dx, dy):
+            mouse_scroll = f'scroll - x: {x}, y: {y}, dx: {dx}, dy: {dy}'
+            print(mouse_scroll)
             print('Scrolled {0} at {1}'.format('down' if dy < 0 else 'up', (x, y)))
+            self.commands.append(mouse_scroll)
         self.keyboard_listener = keyboard.Listener(on_press=on_press, on_release=on_release)
         self.keyboard_listener.start()
         self.mouse_listener = mouse.Listener(on_move=on_move, on_click=on_click, on_scroll=on_scroll)
         self.mouse_listener.start()
+    def temp_check_tables(self):
+        self.connect_database()
+        las_aut_id = self.cursor.execute('SELECT MAX(id) FROM automacao').fetchone()[0]
+        comandos = self.cursor.execute(f'SELECT command FROM comando WHERE automacao_id = {las_aut_id}').fetchall()
+        print('comandos: ',comandos)
+        self.disconnect_database()
 
 class Application(Funcs):
     def __init__(self):
+        # self.temp_check_tables()
         self.commands = []
         self.new_aut_id = 0
         self.root = root
@@ -129,16 +139,31 @@ class Application(Funcs):
     def widgets_frame_2(self):
         self.aut_list = ttk.Treeview(self.frame_2, height=3, column=('col1'))
         self.aut_list.heading('#0', text='')
-        self.aut_list.heading('#1', text='nome')
+        self.aut_list.heading('#1', text='Automações')
 
         self.aut_list.column('#0', width=1)
         self.aut_list.column('#1', width=500)
 
-        self.aut_list.place(relx=0, rely=0, relwidth=0.97, relheight=1)
+        self.aut_list.place(relx=0, rely=0, relwidth=0.57, relheight=1)
 
         self.scroll = Scrollbar(self.frame_2, orient='vertical')
         self.aut_list.configure(yscroll=self.scroll)
-        self.scroll.place(relx=0.97, rely=0, relwidth=0.02, relheight=1)
+        self.scroll.place(relx=0.57, rely=0, relwidth=0.02, relheight=1)
+
+        self.aut_seleted_lb = Label(self.frame_2, text='Automação selecionada', bg='#edeff2')
+        self.aut_seleted_lb.place(relx=0.60, rely=0, relwidth=0.4, relheight=0.09)
+
+        self.auto_seleted = Entry(self.frame_2)
+        self.auto_seleted.place(relx=0.60, rely=0.08, relwidth=0.4, relheight=0.09)
+
+        self.btn_run_aut = Button(self.frame_2, text='Rodar automação', bd=2, bg='#00A86B', fg='white')
+        self.btn_run_aut.place(relx=0.60, rely=0.25, relwidth=0.4, relheight=0.09)
+
+        self.btn_run_aut = Button(self.frame_2, text='Editar automação', bd=2, bg='#5a4aed', fg='white')
+        self.btn_run_aut.place(relx=0.60, rely=0.45, relwidth=0.4, relheight=0.09)
+
+        self.btn_run_aut = Button(self.frame_2, text='Excluir automação', bd=2, bg='#c93045', fg='white')
+        self.btn_run_aut.place(relx=0.60, rely=0.55, relwidth=0.4, relheight=0.09)
 
 
 Application()
