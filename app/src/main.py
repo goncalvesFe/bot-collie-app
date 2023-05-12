@@ -2,8 +2,10 @@ import sqlite3
 from tkinter import *
 from tkinter import ttk
 
+import pyautogui
 from pynput import keyboard, mouse
 
+pyautogui.PAUSE = 1
 root = Tk()
 
 class Funcs():
@@ -60,6 +62,7 @@ class Funcs():
             self.tree_aut.insert("", END, values=i)
         self.disconnect_database()
     def init_listeners(self):
+        # pyautogui.hotkey('win', 'd')
         def on_press(key):
             self.commands.append(key)
             try:
@@ -92,6 +95,25 @@ class Funcs():
         self.keyboard_listener.start()
         self.mouse_listener = mouse.Listener(on_move=on_move, on_click=on_click, on_scroll=on_scroll)
         self.mouse_listener.start()
+    def run_automation(self):
+        self.connect_database()
+        aut_id = self.cursor.execute(f"SELECT id FROM automacao WHERE name='{self.aut_name_seleted}'").fetchone()[0]
+        commands = self.cursor.execute(f"SELECT * FROM comando WHERE automacao_id='{aut_id}'").fetchall()
+        pyautogui.hotkey('win', 'd')
+        for command in commands:
+            cmd = command[2]
+            if len(cmd.split('.')) == 1:
+                print('tecla normal')
+                print(cmd)
+                pyautogui.press(cmd)
+            else:
+                print('tecla especial')
+                special_cmd = cmd.split('.')[1]
+                if special_cmd == 'cmd':
+                    special_cmd = 'win'
+                print(special_cmd)
+                pyautogui.press(special_cmd)
+        self.disconnect_database()
     def temp_check_tables(self):
         self.connect_database()
         las_aut_id = self.cursor.execute('SELECT MAX(id) FROM automacao').fetchone()[0]
@@ -168,7 +190,7 @@ class Application(Funcs):
         self.auto_seleted = Label(self.frame_2, text='Selecione a automação', bg='#dae1eb', font=('Arial', 15))
         self.auto_seleted.place(relx=0.62, rely=0.03, relwidth=0.36, relheight=0.09)
 
-        self.btn_run_aut = Button(self.frame_2, text='Rodar automação', bd=2, bg='#00A86B', fg='white')
+        self.btn_run_aut = Button(self.frame_2, text='Rodar automação', command=self.run_automation, bd=2, bg='#00A86B', fg='white')
         self.btn_run_aut.place(relx=0.62, rely=0.25, relwidth=0.36, relheight=0.09)
 
         self.btn_run_aut = Button(self.frame_2, text='Editar automação', bd=2, bg='#5a4aed', fg='white')
