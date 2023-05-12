@@ -18,6 +18,15 @@ class Funcs():
         self.cursor.execute("CREATE TABLE IF NOT EXISTS comando (id integer PRIMARY KEY, automacao_id int, command text)")
         self.conn.commit()
         self.disconnect_database()
+    def delete_automation(self):
+        self.connect_database()
+        select_query = f"SELECT id FROM automacao WHERE name='{self.aut_name_seleted}'"
+        aut_id = self.cursor.execute(select_query).fetchone()[0]
+        self.cursor.execute(f"DELETE FROM automacao WHERE id='{aut_id}'")
+        self.cursor.execute(f"DELETE FROM comando WHERE automacao_id='{aut_id}'")
+        self.conn.commit()
+        self.disconnect_database()
+        self.update_tree()
     def save_commands(self):
         self.connect_database
         for command in self.commands:
@@ -42,8 +51,8 @@ class Funcs():
         self.new_aut_id = aut_id
         self.save_commands()
         self.disconnect_database()
-        self.update_list()
-    def update_list(self):
+        self.update_tree()
+    def update_tree(self):
         self.tree_aut.delete(*self.tree_aut.get_children())
         self.connect_database()
         list = self.cursor.execute('SELECT name FROM  automacao')
@@ -101,7 +110,7 @@ class Application(Funcs):
         self.widgets_frame_1()
         self.widgets_frame_2()
         self.create_tables()
-        self.update_list()
+        self.update_tree()
         root.mainloop()
     def screen(self):
         self.root.title('Bot Collie')
@@ -143,6 +152,7 @@ class Application(Funcs):
         self.tree_aut.column('#0', width=1)
         self.tree_aut.column('#1', width=500)
         self.tree_aut.place(relx=0, rely=0, relwidth=0.57, relheight=1)
+
         self.aut_name_seleted = ''
         def item_selected(event):
             for seleted_item in self.tree_aut.selection():
@@ -164,7 +174,7 @@ class Application(Funcs):
         self.btn_run_aut = Button(self.frame_2, text='Editar automação', bd=2, bg='#5a4aed', fg='white')
         self.btn_run_aut.place(relx=0.62, rely=0.45, relwidth=0.36, relheight=0.09)
 
-        self.btn_run_aut = Button(self.frame_2, text='Excluir automação', bd=2, bg='#c93045', fg='white')
+        self.btn_run_aut = Button(self.frame_2, text='Excluir automação', command=self.delete_automation, bd=2, bg='#c93045', fg='white')
         self.btn_run_aut.place(relx=0.62, rely=0.55, relwidth=0.36, relheight=0.09)
 
 
