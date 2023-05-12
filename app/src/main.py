@@ -44,11 +44,11 @@ class Funcs():
         self.disconnect_database()
         self.update_list()
     def update_list(self):
-        self.aut_list.delete(*self.aut_list.get_children())
+        self.tree_aut.delete(*self.tree_aut.get_children())
         self.connect_database()
         list = self.cursor.execute('SELECT name FROM  automacao')
         for i in list:
-            self.aut_list.insert("", END, values=i)
+            self.tree_aut.insert("", END, values=i)
         self.disconnect_database()
     def init_listeners(self):
         def on_press(key):
@@ -137,33 +137,35 @@ class Application(Funcs):
         self.countdown_msg.place(relx=0.4, rely=0.3, relwidth=0.4, relheight=0.1)
         self.init_listeners()
     def widgets_frame_2(self):
-        self.aut_list = ttk.Treeview(self.frame_2, height=3, column=('col1'))
-        self.aut_list.heading('#0', text='')
-        self.aut_list.heading('#1', text='Automações')
-
-        self.aut_list.column('#0', width=1)
-        self.aut_list.column('#1', width=500)
-
-        self.aut_list.place(relx=0, rely=0, relwidth=0.57, relheight=1)
+        self.tree_aut = ttk.Treeview(self.frame_2, height=3, column=('automacoes'), show='headings')
+        self.tree_aut.heading('#0', text='')
+        self.tree_aut.heading('#1', text='Automações')
+        self.tree_aut.column('#0', width=1)
+        self.tree_aut.column('#1', width=500)
+        self.tree_aut.place(relx=0, rely=0, relwidth=0.57, relheight=1)
+        self.aut_name_seleted = ''
+        def item_selected(event):
+            for seleted_item in self.tree_aut.selection():
+                item = self.tree_aut.item(seleted_item)
+                self.aut_name_seleted = item['values'][0]
+                self.auto_seleted.config(text=self.aut_name_seleted)
+        self.tree_aut.bind('<<TreeviewSelect>>', item_selected)
 
         self.scroll = Scrollbar(self.frame_2, orient='vertical')
-        self.aut_list.configure(yscroll=self.scroll)
+        self.tree_aut.configure(yscroll=self.scroll)
         self.scroll.place(relx=0.57, rely=0, relwidth=0.02, relheight=1)
 
-        self.aut_seleted_lb = Label(self.frame_2, text='Automação selecionada', bg='#edeff2')
-        self.aut_seleted_lb.place(relx=0.60, rely=0, relwidth=0.4, relheight=0.09)
-
-        self.auto_seleted = Entry(self.frame_2)
-        self.auto_seleted.place(relx=0.60, rely=0.08, relwidth=0.4, relheight=0.09)
+        self.auto_seleted = Label(self.frame_2, text='Selecione a automação', bg='#dae1eb', font=('Arial', 15))
+        self.auto_seleted.place(relx=0.62, rely=0.03, relwidth=0.36, relheight=0.09)
 
         self.btn_run_aut = Button(self.frame_2, text='Rodar automação', bd=2, bg='#00A86B', fg='white')
-        self.btn_run_aut.place(relx=0.60, rely=0.25, relwidth=0.4, relheight=0.09)
+        self.btn_run_aut.place(relx=0.62, rely=0.25, relwidth=0.36, relheight=0.09)
 
         self.btn_run_aut = Button(self.frame_2, text='Editar automação', bd=2, bg='#5a4aed', fg='white')
-        self.btn_run_aut.place(relx=0.60, rely=0.45, relwidth=0.4, relheight=0.09)
+        self.btn_run_aut.place(relx=0.62, rely=0.45, relwidth=0.36, relheight=0.09)
 
         self.btn_run_aut = Button(self.frame_2, text='Excluir automação', bd=2, bg='#c93045', fg='white')
-        self.btn_run_aut.place(relx=0.60, rely=0.55, relwidth=0.4, relheight=0.09)
+        self.btn_run_aut.place(relx=0.62, rely=0.55, relwidth=0.36, relheight=0.09)
 
 
 Application()
