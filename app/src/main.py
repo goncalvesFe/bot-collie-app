@@ -141,6 +141,13 @@ class Application(Funcs):
         self.root.resizable(True, True)
         self.root.maxsize(width=1100, height=900)
         self.root.minsize(width=400, height=300)
+    def edit_screen(self):
+        self.root_edit = Toplevel()
+        self.root_edit.configure(background='#babdc2')
+        self.root_edit.geometry("900x700")
+        self.root_edit.resizable(True, True)
+        self.root_edit.maxsize(width=1100, height=900)
+        self.root_edit.minsize(width=400, height=300)
     def screen_frames(self):
         self.frame_1 = Frame(self.root, bd=4, bg='#edeff2', highlightbackground='white', highlightthickness=3)
         self.frame_1.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.25)
@@ -193,7 +200,7 @@ class Application(Funcs):
         self.btn_run_aut = Button(self.frame_2, text='Rodar automação', command=self.run_automation, bd=2, bg='#00A86B', fg='white')
         self.btn_run_aut.place(relx=0.62, rely=0.25, relwidth=0.36, relheight=0.09)
 
-        self.btn_run_aut = Button(self.frame_2, text='Editar automação', bd=2, bg='#5a4aed', fg='white')
+        self.btn_run_aut = Button(self.frame_2, text='Editar automação', command=self.edit_screen, bd=2, bg='#5a4aed', fg='white')
         self.btn_run_aut.place(relx=0.62, rely=0.45, relwidth=0.36, relheight=0.09)
 
         self.btn_run_aut = Button(self.frame_2, text='Excluir automação', command=self.delete_automation, bd=2, bg='#c93045', fg='white')
