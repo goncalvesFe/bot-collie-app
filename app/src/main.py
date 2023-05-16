@@ -248,7 +248,7 @@ class Application(Funcs):
 
         self.cmd_seleted = Label(self.edit_frame, text='Selecione o comando', bg='#dae1eb', font=('Arial', 15))
         self.cmd_seleted.place(relx=0.62, rely=0.3, relwidth=0.36, relheight=0.09)
-        self.btn_edt_cmd = Button(self.edit_frame, text='Editar comando', bd=2, bg='#5a4aed', fg='white')
+        self.btn_edt_cmd = Button(self.edit_frame, text='Editar comando', command=self.edit_command_widgets, bd=2, bg='#5a4aed', fg='white')
         self.btn_edt_cmd.place(relx=0.62, rely=0.40, relwidth=0.36, relheight=0.07)
         self.btn_del_cmd = Button(self.edit_frame, text='Excluir comando', bd=2, bg='#c93045', fg='white')
         self.btn_del_cmd.place(relx=0.62, rely=0.50, relwidth=0.36, relheight=0.06)
@@ -257,6 +257,25 @@ class Application(Funcs):
         self.add_below_lbl.place(relx=0.62, rely=0.8, relwidth=0.36, relheight=0.09)
         self.add_below_btn = Button(self.edit_frame, text='+', bd=2, bg='#dae1eb')
         self.add_below_btn.place(relx=0.62, rely=0.77, relwidth=0.36, relheight=0.05)
+    def show_keyboard_opt(self):
+        pass
+    def show_mouse_opt(self):
+        pass
+    def edit_command_widgets(self):
+        self.tree_command.destroy()
+        self.ed_scroll.destroy()
+        self.add_above_lbl.destroy()
+        self.add_above_btn.destroy()
+        self.cmd_seleted.destroy()
+        self.btn_edt_cmd.destroy()
+        self.btn_del_cmd.destroy()
+        self.add_below_lbl.destroy()
+        self.add_below_btn.destroy()
+
+        self.btn_keyboard_opt = Button(self.edit_frame, text='Comandos teclado', bd=2, bg='#dae1eb')
+        self.btn_keyboard_opt.place(relx=0.05, rely=0.02, relwidth=0.4, relheight=0.07)
+        self.btn_mouse_opt = Button(self.edit_frame, text='Comandos mouse', bd=2, bg='#dae1eb')
+        self.btn_mouse_opt.place(relx=0.55, rely=0.02, relwidth=0.4, relheight=0.07)
 
 
 Application()
