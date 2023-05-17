@@ -17,7 +17,7 @@ class Funcs():
     def create_tables(self):
         self.connect_database()
         self.cursor.execute('CREATE TABLE IF NOT EXISTS automacao (id integer PRIMARY KEY, name text)')
-        self.cursor.execute("CREATE TABLE IF NOT EXISTS comando (id integer PRIMARY KEY, automacao_id int, command text)")
+        self.cursor.execute("CREATE TABLE IF NOT EXISTS comando (id integer PRIMARY KEY, automacao_id int, command text, cmdOrder int)")
         self.conn.commit()
         self.disconnect_database()
     def get_aut_id(self):
@@ -35,14 +35,16 @@ class Funcs():
         self.update_tree()
     def save_commands(self):
         self.connect_database
+        cmd_counter = 1
         for command in self.commands:
             if hasattr(command, 'char'):
-                insert_query = f"INSERT INTO comando (automacao_id, command) VALUES ({self.new_aut_id}, {command})"
+                insert_query = f"INSERT INTO comando (automacao_id, command, cmdOrder) VALUES ({self.new_aut_id}, {command}, {cmd_counter})"
                 self.cursor.execute(insert_query)
             else:
                 cmd = f"'{command}'"
-                insert_query = f"INSERT INTO comando (automacao_id, command) VALUES ({self.new_aut_id}, {cmd})"
+                insert_query = f"INSERT INTO comando (automacao_id, command, cmdOrder) VALUES ({self.new_aut_id}, {cmd}, {cmd_counter})"
                 self.cursor.execute(insert_query)
+            cmd_counter = cmd_counter + 1
         self.conn.commit()
         self.disconnect_database()
     def save_automation(self):
@@ -129,7 +131,7 @@ class Funcs():
     def temp_check_tables(self):
         self.connect_database()
         las_aut_id = self.cursor.execute('SELECT MAX(id) FROM automacao').fetchone()[0]
-        comandos = self.cursor.execute(f'SELECT command FROM comando WHERE automacao_id = {las_aut_id}').fetchall()
+        comandos = self.cursor.execute(f'SELECT command, cmdOrder FROM comando WHERE automacao_id = {las_aut_id}').fetchall()
         print('comandos: ',comandos)
         self.disconnect_database()
 
@@ -191,7 +193,7 @@ class Application(Funcs):
         self.countdown_msg.place(relx=0.4, rely=0.3, relwidth=0.4, relheight=0.1)
         self.init_listeners()
     def widgets_frame_2(self):
-        self.tree_aut = ttk.Treeview(self.frame_2, height=3, column=('automacoes'), show='headings')
+        self.tree_aut = ttk.Treeview(self.frame_2, height=3, column=('col1'), show='headings')
         self.tree_aut.heading('#0', text='')
         self.tree_aut.heading('#1', text='Automações')
         self.tree_aut.column('#0', width=1)
@@ -222,7 +224,7 @@ class Application(Funcs):
         self.btn_del_aut = Button(self.frame_2, text='Excluir automação', command=self.delete_automation, bd=2, bg='#c93045', fg='white')
         self.btn_del_aut.place(relx=0.62, rely=0.55, relwidth=0.36, relheight=0.09)
     def edit_widget_frame(self):
-        self.tree_command = ttk.Treeview(self.edit_frame, height=3, column=('automacoes'), show='headings')
+        self.tree_command = ttk.Treeview(self.edit_frame, height=3, column=('col1'), show='headings')
         self.tree_command.heading('#0', text='')
         self.tree_command.heading('#1', text='Comandos')
         self.tree_command.column('#0', width=1)
