@@ -20,19 +20,29 @@ class Funcs():
         self.cursor.execute("CREATE TABLE IF NOT EXISTS comando (id integer PRIMARY KEY, automacao_id int, command text, cmdOrder int)")
         self.conn.commit()
         self.disconnect_database()
-    def get_aut_id(self):
-        self.connect_database()
-        select_query = f"SELECT id FROM automacao WHERE name='{self.aut_name_seleted}'"
-        self.aut_id = self.cursor.execute(select_query).fetchone()[0]
-        self.disconnect_database()
     def delete_automation(self):
-        self.get_aut_id()
         self.connect_database()
-        self.cursor.execute(f"DELETE FROM automacao WHERE id='{self.aut_id}'")
-        self.cursor.execute(f"DELETE FROM comando WHERE automacao_id='{self.aut_id}'")
+        self.cursor.execute(f"DELETE FROM automacao WHERE id='{self.aut_id_selected}'")
+        self.cursor.execute(f"DELETE FROM comando WHERE automacao_id='{self.aut_id_selected}'")
         self.conn.commit()
         self.disconnect_database()
         self.update_tree()
+    def update_cmd_order(self):
+        self.connect_database()
+        ids = self.cursor.execute(f"SELECT id FROM comando WHERE automacao_id='{self.aut_id_selected}' AND cmdOrder > '{self.cmd_order_selected}' ORDER BY cmdOrder ASC").fetchall()
+        order_to_update = self.cmd_order_selected
+        for id in ids:
+            self.cursor.execute(f"UPDATE comando SET cmdOrder = '{order_to_update}' WHERE id = '{id[0]}'")
+            order_to_update = order_to_update + 1
+        self.conn.commit()
+        self.disconnect_database()
+    def delete_command(self):
+        self.update_cmd_order()
+        self.connect_database()
+        self.cursor.execute(f"DELETE FROM comando WHERE id='{self.cmd_id_selected}'")
+        self.conn.commit()
+        self.disconnect_database()
+        self.update_edit_tree()
     def save_commands(self):
         self.connect_database
         cmd_counter = 1
@@ -63,15 +73,14 @@ class Funcs():
     def update_tree(self):
         self.tree_aut.delete(*self.tree_aut.get_children())
         self.connect_database()
-        list = self.cursor.execute('SELECT name FROM  automacao')
+        list = self.cursor.execute('SELECT id, name FROM  automacao')
         for i in list:
             self.tree_aut.insert("", END, values=i)
         self.disconnect_database()
-    def load_edit_tree(self):
+    def update_edit_tree(self):
         self.tree_command.delete(*self.tree_command.get_children())
-        self.get_aut_id()
         self.connect_database()
-        list = self.cursor.execute(f"SELECT command FROM comando WHERE automacao_id = '{self.aut_id}'")
+        list = self.cursor.execute(f"SELECT id, cmdOrder, command FROM comando WHERE automacao_id = '{self.aut_id_selected}' ORDER BY cmdOrder ASC")
         for i in list:
             self.tree_command.insert("", END, values=i)
         self.disconnect_database()
@@ -111,7 +120,7 @@ class Funcs():
         self.mouse_listener.start()
     def run_automation(self):
         self.connect_database()
-        aut_id = self.cursor.execute(f"SELECT id FROM automacao WHERE name='{self.aut_name_seleted}'").fetchone()[0]
+        aut_id = self.cursor.execute(f"SELECT id FROM automacao WHERE name='{self.aut_name_selected}'").fetchone()[0]
         commands = self.cursor.execute(f"SELECT * FROM comando WHERE automacao_id='{aut_id}'").fetchall()
         pyautogui.hotkey('win', 'd')
         for command in commands:
@@ -165,7 +174,7 @@ class Application(Funcs):
         self.edit_frame = Frame(self.root_edit, bd=4, bg='#edeff2', highlightbackground='white', highlightthickness=3)
         self.edit_frame.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
         self.edit_widget_frame()
-        self.load_edit_tree()
+        self.update_edit_tree()
     def screen_frames(self):
         self.frame_1 = Frame(self.root, bd=4, bg='#edeff2', highlightbackground='white', highlightthickness=3)
         self.frame_1.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.25)
@@ -193,27 +202,31 @@ class Application(Funcs):
         self.countdown_msg.place(relx=0.4, rely=0.3, relwidth=0.4, relheight=0.1)
         self.init_listeners()
     def widgets_frame_2(self):
-        self.tree_aut = ttk.Treeview(self.frame_2, height=3, column=('col1'), show='headings')
+        self.tree_aut = ttk.Treeview(self.frame_2, height=3, column=('col1', 'col2'), show='headings')
         self.tree_aut.heading('#0', text='')
-        self.tree_aut.heading('#1', text='Automações')
+        self.tree_aut.heading('#1', text='ID')
+        self.tree_aut.heading('#2', text='Automações')
         self.tree_aut.column('#0', width=1)
-        self.tree_aut.column('#1', width=500)
+        self.tree_aut.column('#1', width=50)
+        self.tree_aut.column('#2', width=450)
         self.tree_aut.place(relx=0, rely=0, relwidth=0.57, relheight=1)
 
-        self.aut_name_seleted = ''
-        def item_selected(event):
+        self.aut_id_selected = 0
+        self.aut_name_selected = ''
+        def get_item_selected(event):
             for seleted_item in self.tree_aut.selection():
                 item = self.tree_aut.item(seleted_item)
-                self.aut_name_seleted = item['values'][0]
-                self.auto_seleted.config(text=self.aut_name_seleted)
-        self.tree_aut.bind('<<TreeviewSelect>>', item_selected)
+                self.aut_id_selected = item['values'][0]
+                self.aut_name_selected = item['values'][1]
+                self.auto_selected.config(text=self.aut_name_selected)
+        self.tree_aut.bind('<<TreeviewSelect>>', get_item_selected)
 
         self.scroll = Scrollbar(self.frame_2, orient='vertical')
         self.tree_aut.configure(yscroll=self.scroll)
         self.scroll.place(relx=0.57, rely=0, relwidth=0.02, relheight=1)
 
-        self.auto_seleted = Label(self.frame_2, text='Selecione a automação', bg='#dae1eb', font=('Arial', 15))
-        self.auto_seleted.place(relx=0.62, rely=0.03, relwidth=0.36, relheight=0.09)
+        self.auto_selected = Label(self.frame_2, text='Selecione a automação', bg='#dae1eb', font=('Arial', 15))
+        self.auto_selected.place(relx=0.62, rely=0.03, relwidth=0.36, relheight=0.09)
 
         self.btn_run_aut = Button(self.frame_2, text='Rodar automação', command=self.run_automation, bd=2, bg='#00A86B', fg='white')
         self.btn_run_aut.place(relx=0.62, rely=0.25, relwidth=0.36, relheight=0.09)
@@ -224,20 +237,28 @@ class Application(Funcs):
         self.btn_del_aut = Button(self.frame_2, text='Excluir automação', command=self.delete_automation, bd=2, bg='#c93045', fg='white')
         self.btn_del_aut.place(relx=0.62, rely=0.55, relwidth=0.36, relheight=0.09)
     def edit_widget_frame(self):
-        self.tree_command = ttk.Treeview(self.edit_frame, height=3, column=('col1'), show='headings')
+        self.tree_command = ttk.Treeview(self.edit_frame, height=3, column=('col1', 'col2', 'col3'), show='headings')
         self.tree_command.heading('#0', text='')
-        self.tree_command.heading('#1', text='Comandos')
+        self.tree_command.heading('#1', text='ID')
+        self.tree_command.heading('#2', text='Ordem')
+        self.tree_command.heading('#3', text='Comando')
         self.tree_command.column('#0', width=1)
-        self.tree_command.column('#1', width=500)
+        self.tree_command.column('#1', width=50)
+        self.tree_command.column('#2', width=200)
+        self.tree_command.column('#3', width=250)
         self.tree_command.place(relx=0, rely=0, relwidth=0.57, relheight=1)
 
-        self.cmd_name_seleted = ''
-        def cmd_selected(event):
+        self.command_selected = ''
+        self.cmd_order_selected = 0
+        self.cmd_id_selected = 0
+        def get_cmd_selected(event):
             for cmd_item in self.tree_command.selection():
                 item = self.tree_command.item(cmd_item)
-                self.cmd_name_seleted = item['values'][0]
-                self.cmd_seleted.config(text=self.cmd_name_seleted)
-        self.tree_command.bind('<<TreeviewSelect>>', cmd_selected)
+                self.cmd_id_selected = item['values'][0]
+                self.cmd_order_selected = item['values'][1]
+                self.command_selected = item['values'][2]
+                self.cmd_seleted.config(text=self.command_selected)
+        self.tree_command.bind('<<TreeviewSelect>>', get_cmd_selected)
 
         self.ed_scroll = Scrollbar(self.edit_frame, orient='vertical')
         self.tree_command.configure(yscroll=self.scroll)
@@ -252,7 +273,7 @@ class Application(Funcs):
         self.cmd_seleted.place(relx=0.62, rely=0.3, relwidth=0.36, relheight=0.09)
         self.btn_edt_cmd = Button(self.edit_frame, text='Editar comando', command=self.edit_command_widgets, bd=2, bg='#5a4aed', fg='white')
         self.btn_edt_cmd.place(relx=0.62, rely=0.40, relwidth=0.36, relheight=0.07)
-        self.btn_del_cmd = Button(self.edit_frame, text='Excluir comando', bd=2, bg='#c93045', fg='white')
+        self.btn_del_cmd = Button(self.edit_frame, text='Excluir comando', command=self.delete_command, bd=2, bg='#c93045', fg='white')
         self.btn_del_cmd.place(relx=0.62, rely=0.50, relwidth=0.36, relheight=0.06)
 
         self.add_below_lbl = Label(self.edit_frame, text='Adicionar comando abaixo', bg='#edeff2', font=('Arial', 13))
