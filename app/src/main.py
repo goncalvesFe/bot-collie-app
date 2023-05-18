@@ -106,13 +106,24 @@ class Funcs():
             pass
         def on_click(x, y, button, pressed):
             if pressed:
-                mouse_click = f'click -  x: {x}, y: {y}, button: {button}'
+                mouse_click = f'click-x:{x},y:{y},button:{button}'
                 print(mouse_click)
                 self.commands.append(mouse_click)
         def on_scroll(x, y, dx, dy):
-            mouse_scroll = f'scroll - x: {x}, y: {y}, dx: {dx}, dy: {dy}'
+            if dx == 0:
+                hscroll = dx
+            elif dx == -1:
+                hscroll = 'right'
+            elif dx == 1:
+                hscroll = 'left'
+            if dy == 0:
+                vscroll = dy
+            elif dy == -1:
+                vscroll = 'down'
+            elif dy == 1:
+                vscroll = 'up'
+            mouse_scroll = f'scroll-x:{x},y:{y},dx:{hscroll},dy:{vscroll}'
             print(mouse_scroll)
-            print('Scrolled {0} at {1}'.format('down' if dy < 0 else 'up', (x, y)))
             self.commands.append(mouse_scroll)
         self.keyboard_listener = keyboard.Listener(on_press=on_press, on_release=on_release)
         self.keyboard_listener.start()
@@ -125,16 +136,40 @@ class Funcs():
         pyautogui.hotkey('win', 'd')
         for command in commands:
             cmd = command[2]
-            if len(cmd.split('.')) == 1:
-                print('tecla normal')
-                print(cmd)
-                pyautogui.press(cmd)
+            print('cmd: ', cmd)
+            cmd_str_split = cmd.split('-')
+            print('cmd_str_split: ', cmd_str_split)
+            if len(cmd_str_split) > 1:
+                mouse_parameters = cmd_str_split[1].split(',')
+                print('mouse_parameters: ', mouse_parameters)
+                pos_x = int(mouse_parameters[0].split(':')[1])
+                pos_y = int(mouse_parameters[1].split(':')[1])
+                if cmd_str_split[0] == 'click':
+                    btn_click = mouse_parameters[2].split(':')[1].split('.')[1]
+                    print(f'click : x={pos_x}, y={pos_y}, button={btn_click}, clicks=1')
+                    pyautogui.click(x=pos_x, y=pos_y, button=btn_click, clicks=1)
+                else:
+                    dx = mouse_parameters[2].split(':')[1]
+                    dy = mouse_parameters[3].split(':')[1]
+                    print(f'scroll: x={pos_x}, y={pos_y}, dx={dx}, dy={dy}')
+                    if dx == '0':
+                        if dy == 'up':
+                            pyautogui.scroll(10, x=pos_x, y=pos_y)
+                        else:
+                            pyautogui.scroll(-10, x=pos_x, y=pos_y)
+                    else:
+                        # scroll horizontal
+                        if dx == 'right':
+                            pyautogui.hscroll(10, x=pos_x, y=pos_y)
+                        else:
+                            pyautogui.hscroll(-10, x=pos_x, y=pos_y)
             else:
-                print('tecla especial')
-                special_cmd = cmd.split('.')[1]
-                if special_cmd == 'cmd':
-                    special_cmd = 'win'
-                print(special_cmd)
+                if len(cmd.split('.')) == 1:
+                    pyautogui.press(cmd)
+                else:
+                    special_cmd = cmd.split('.')[1]
+                    if special_cmd == 'cmd':
+                        special_cmd = 'win'
                 pyautogui.press(special_cmd)
         self.disconnect_database()
     def temp_check_tables(self):
