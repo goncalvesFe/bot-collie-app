@@ -130,48 +130,52 @@ class Funcs():
         self.mouse_listener = mouse.Listener(on_move=on_move, on_click=on_click, on_scroll=on_scroll)
         self.mouse_listener.start()
     def run_automation(self):
-        self.connect_database()
-        aut_id = self.cursor.execute(f"SELECT id FROM automacao WHERE name='{self.aut_name_selected}'").fetchone()[0]
-        commands = self.cursor.execute(f"SELECT * FROM comando WHERE automacao_id='{aut_id}'").fetchall()
-        pyautogui.hotkey('win', 'd')
-        for command in commands:
-            cmd = command[2]
-            print('cmd: ', cmd)
-            cmd_str_split = cmd.split('-')
-            print('cmd_str_split: ', cmd_str_split)
-            if len(cmd_str_split) > 1:
-                mouse_parameters = cmd_str_split[1].split(',')
-                print('mouse_parameters: ', mouse_parameters)
-                pos_x = int(mouse_parameters[0].split(':')[1])
-                pos_y = int(mouse_parameters[1].split(':')[1])
-                if cmd_str_split[0] == 'click':
-                    btn_click = mouse_parameters[2].split(':')[1].split('.')[1]
-                    print(f'click : x={pos_x}, y={pos_y}, button={btn_click}, clicks=1')
-                    pyautogui.click(x=pos_x, y=pos_y, button=btn_click, clicks=1)
-                else:
-                    dx = mouse_parameters[2].split(':')[1]
-                    dy = mouse_parameters[3].split(':')[1]
-                    print(f'scroll: x={pos_x}, y={pos_y}, dx={dx}, dy={dy}')
-                    if dx == '0':
-                        if dy == 'up':
-                            pyautogui.scroll(10, x=pos_x, y=pos_y)
-                        else:
-                            pyautogui.scroll(-10, x=pos_x, y=pos_y)
+        if self.aut_name_selected == '':
+            self.error_txt = 'Nenhuma automação selecionada'
+            self.error_modal_screen()
+        else:
+            self.connect_database()
+            aut_id = self.cursor.execute(f"SELECT id FROM automacao WHERE name='{self.aut_name_selected}'").fetchone()[0]
+            commands = self.cursor.execute(f"SELECT * FROM comando WHERE automacao_id='{aut_id}'").fetchall()
+            pyautogui.hotkey('win', 'd')
+            for command in commands:
+                cmd = command[2]
+                print('cmd: ', cmd)
+                cmd_str_split = cmd.split('-')
+                print('cmd_str_split: ', cmd_str_split)
+                if len(cmd_str_split) > 1:
+                    mouse_parameters = cmd_str_split[1].split(',')
+                    print('mouse_parameters: ', mouse_parameters)
+                    pos_x = int(mouse_parameters[0].split(':')[1])
+                    pos_y = int(mouse_parameters[1].split(':')[1])
+                    if cmd_str_split[0] == 'click':
+                        btn_click = mouse_parameters[2].split(':')[1].split('.')[1]
+                        print(f'click : x={pos_x}, y={pos_y}, button={btn_click}, clicks=1')
+                        pyautogui.click(x=pos_x, y=pos_y, button=btn_click, clicks=1)
                     else:
-                        # scroll horizontal
-                        if dx == 'right':
-                            pyautogui.hscroll(10, x=pos_x, y=pos_y)
+                        dx = mouse_parameters[2].split(':')[1]
+                        dy = mouse_parameters[3].split(':')[1]
+                        print(f'scroll: x={pos_x}, y={pos_y}, dx={dx}, dy={dy}')
+                        if dx == '0':
+                            if dy == 'up':
+                                pyautogui.scroll(10, x=pos_x, y=pos_y)
+                            else:
+                                pyautogui.scroll(-10, x=pos_x, y=pos_y)
                         else:
-                            pyautogui.hscroll(-10, x=pos_x, y=pos_y)
-            else:
-                if len(cmd.split('.')) == 1:
-                    pyautogui.press(cmd)
+                            # scroll horizontal
+                            if dx == 'right':
+                                pyautogui.hscroll(10, x=pos_x, y=pos_y)
+                            else:
+                                pyautogui.hscroll(-10, x=pos_x, y=pos_y)
                 else:
-                    special_cmd = cmd.split('.')[1]
-                    if special_cmd == 'cmd':
-                        special_cmd = 'win'
-                pyautogui.press(special_cmd)
-        self.disconnect_database()
+                    if len(cmd.split('.')) == 1:
+                        pyautogui.press(cmd)
+                    else:
+                        special_cmd = cmd.split('.')[1]
+                        if special_cmd == 'cmd':
+                            special_cmd = 'win'
+                    pyautogui.press(special_cmd)
+            self.disconnect_database()
     def temp_check_tables(self):
         self.connect_database()
         las_aut_id = self.cursor.execute('SELECT MAX(id) FROM automacao').fetchone()[0]
@@ -182,6 +186,7 @@ class Funcs():
 class Application(Funcs):
     def __init__(self):
         # self.temp_check_tables()
+        self.error_txt = 'Ocorreu um erro'
         self.commands = []
         self.new_aut_id = 0
         self.root = root
@@ -195,7 +200,7 @@ class Application(Funcs):
     def screen(self):
         self.root.title('Bot Collie')
         self.root.configure(background='#babdc2')
-        self.root.geometry("900x700")
+        self.root.geometry("900x800")
         self.root.resizable(True, True)
         self.root.maxsize(width=1100, height=900)
         self.root.minsize(width=400, height=300)
@@ -210,33 +215,47 @@ class Application(Funcs):
         self.edit_frame.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
         self.edit_widget_frame()
         self.update_edit_tree()
+    def error_modal_screen(self):
+        self.root_error_modal = Toplevel()
+        self.root_error_modal.configure(background='#babdc2')
+        self.root_error_modal.geometry("450x350")
+        self.root_error_modal.resizable(True, True)
+        self.root_error_modal.maxsize(width=900, height=450)
+        self.root_error_modal.minsize(width=100, height=100)
+        self.error_modal_frame = Frame(self.root_error_modal, bd=4, bg='#edeff2', highlightbackground='white', highlightthickness=3)
+        self.error_modal_frame.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
+        self.widget_error_modal()
+    def widget_error_modal(self):
+        self.error_msg = Label(self.error_modal_frame, text=self.error_txt, bg='#edeff2')
+        self.error_msg.place(relx=0, rely=0.1, relwidth=1, relheight=0.3)
+        self.confirm_btn = Button(self.error_modal_frame, text='Ok', command=self.root_error_modal.destroy, bd=2)
+        self.confirm_btn.place(relx= 0.1, rely=0.5, relwidth=0.8, relheight=0.2)
     def screen_frames(self):
         self.frame_1 = Frame(self.root, bd=4, bg='#edeff2', highlightbackground='white', highlightthickness=3)
         self.frame_1.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.25)
         self.frame_2 = Frame(self.root, bd=4, bg='#edeff2', highlightbackground='white', highlightthickness=3)
         self.frame_2.place(relx=0.02, rely=0.3, relwidth=0.96, relheight=0.68)
     def widgets_frame_1(self):
-        self.logo_img = PhotoImage(file='assets/bot_collie_logo3.png')
+        self.logo_img = PhotoImage(file='assets/bot_collie_logo90X70.png')
         self.logo = Label(self.frame_1, image=self.logo_img, bg='#edeff2')
-        # self.logo.place(relx=0, rely=0, relwidth=0.1, relheight=0.1)
         self.logo.place(relx=0, rely=0)
         self.btn_add_aut = Button(self.frame_1, text='Criar nova automação', command=self.show_add_aut_confirmation, bd=2, bg='#00A86B', fg='white')
-        self.btn_add_aut.place(relx=0, rely=0.5, relwidth=0.23, relheight=0.30)
+        self.btn_add_aut.place(relx=0.62, rely=0.5, relwidth=0.36, relheight=0.30)
     def show_add_aut_confirmation(self):
-        self.confirmation_msg = Label(self.frame_1, text='Para criar uma nova automação clique em começar', bg='#edeff2')
-        self.confirmation_msg.place(relx=0.4, rely=0, relwidth=0.4, relheight=0.1)
+        self.btn_add_aut.destroy()
+        self.confirmation_msg = Label(self.frame_1, text='Para criar uma nova automação clique em Iniciar', bg='#edeff2', font=('Arial', 13))
+        self.confirmation_msg.place(relx=0.2, rely=0.1, relwidth=0.6, relheight=0.1)
         self.cancel_btn = Button(self.frame_1, text='Cancelar', command=self.clean_add_aut, bd=2, bg='#c93045', fg='white')
-        self.cancel_btn.place(relx=0.4, rely=0.5, relwidth=0.23, relheight=0.30)
-        self.add_aut_btn = Button(self.frame_1, text='Iniciar', command=self.init_msg, bd=2, bg='#00A86B', fg='white')
-        self.add_aut_btn.place(relx=0.7, rely=0.5, relwidth=0.23, relheight=0.30)
+        self.cancel_btn.place(relx=0.25, rely=0.5, relwidth=0.23, relheight=0.30)
+        self.add_aut_btn = Button(self.frame_1, text='Iniciar', command=self.init_aut, bd=2, bg='#00A86B', fg='white')
+        self.add_aut_btn.place(relx=0.55, rely=0.5, relwidth=0.23, relheight=0.30)
     def clean_add_aut(self):
         self.confirmation_msg.destroy()
         self.cancel_btn.destroy()
         self.add_aut_btn.destroy()
-    def init_msg(self):
+        self.widgets_frame_1()
+    def init_aut(self):
         self.clean_add_aut()
-        self.countdown_msg = Label(self.frame_1, text='Aguarde janelas minimizarem para começar', bg='#edeff2')
-        self.countdown_msg.place(relx=0.4, rely=0.3, relwidth=0.4, relheight=0.1)
         self.init_listeners()
     def widgets_frame_2(self):
         self.tree_aut = ttk.Treeview(self.frame_2, height=3, column=('col1', 'col2'), show='headings')
