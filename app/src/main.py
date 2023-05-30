@@ -27,6 +27,7 @@ class Funcs():
         self.conn.commit()
         self.disconnect_database()
         self.update_tree()
+        self.clean_del_confirm()
     def update_cmd_order(self):
         self.connect_database()
         ids = self.cursor.execute(f"SELECT id FROM comando WHERE automacao_id='{self.aut_id_selected}' AND cmdOrder > '{self.cmd_order_selected}' ORDER BY cmdOrder ASC").fetchall()
@@ -43,6 +44,7 @@ class Funcs():
         self.conn.commit()
         self.disconnect_database()
         self.update_edit_tree()
+        self.reset_confirm_cmd_del()
     def save_commands(self):
         self.connect_database
         cmd_counter = 1
@@ -187,6 +189,7 @@ class Application(Funcs):
     def __init__(self):
         # self.temp_check_tables()
         self.error_txt = 'Ocorreu um erro'
+        self.confirm_cmd_del = False
         self.commands = []
         self.new_aut_id = 0
         self.root = root
@@ -205,16 +208,20 @@ class Application(Funcs):
         self.root.maxsize(width=1100, height=900)
         self.root.minsize(width=400, height=300)
     def edit_screen(self):
-        self.root_edit = Toplevel()
-        self.root_edit.configure(background='#babdc2')
-        self.root_edit.geometry("900x700")
-        self.root_edit.resizable(True, True)
-        self.root_edit.maxsize(width=1100, height=900)
-        self.root_edit.minsize(width=400, height=300)
-        self.edit_frame = Frame(self.root_edit, bd=4, bg='#edeff2', highlightbackground='white', highlightthickness=3)
-        self.edit_frame.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
-        self.edit_widget_frame()
-        self.update_edit_tree()
+        if self.aut_name_selected == '':
+            self.error_txt = 'Nenhuma automação selecionada'
+            self.error_modal_screen()
+        else:
+            self.root_edit = Toplevel()
+            self.root_edit.configure(background='#babdc2')
+            self.root_edit.geometry("900x700")
+            self.root_edit.resizable(True, True)
+            self.root_edit.maxsize(width=1100, height=900)
+            self.root_edit.minsize(width=400, height=300)
+            self.edit_frame = Frame(self.root_edit, bd=4, bg='#edeff2', highlightbackground='white', highlightthickness=3)
+            self.edit_frame.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
+            self.edit_widget_frame()
+            self.update_edit_tree()
     def error_modal_screen(self):
         self.root_error_modal = Toplevel()
         self.root_error_modal.configure(background='#babdc2')
@@ -224,12 +231,22 @@ class Application(Funcs):
         self.root_error_modal.minsize(width=100, height=100)
         self.error_modal_frame = Frame(self.root_error_modal, bd=4, bg='#edeff2', highlightbackground='white', highlightthickness=3)
         self.error_modal_frame.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
-        self.widget_error_modal()
+        if self.confirm_cmd_del:
+            self.widget_confirm_cmd_del()
+        else:
+            self.widget_error_modal()
+    def widget_confirm_cmd_del(self):
+        self.del_cmd_msg = Label(self.error_modal_frame, text='Deseja excluir o comando?', bg='#edeff2', font=('Arial', 14))
+        self.del_cmd_msg.place(relx=0, rely=0.1, relwidth=1, relheight=0.3)
+        self.Ndel_cmd_confirm_btn = Button(self.error_modal_frame, text='Cancelar', command=self.reset_confirm_cmd_del, bd=2, bg='#c93045', fg='white')
+        self.Ndel_cmd_confirm_btn.place(relx= 0.15, rely=0.5, relwidth=0.3, relheight=0.15)
+        self.del_cmd_confirm_btn = Button(self.error_modal_frame, text='Excluir', command=self.delete_command, bd=2, bg='#00A86B', fg='white')
+        self.del_cmd_confirm_btn.place(relx= 0.55, rely=0.5, relwidth=0.3, relheight=0.15)
     def widget_error_modal(self):
-        self.error_msg = Label(self.error_modal_frame, text=self.error_txt, bg='#edeff2')
+        self.error_msg = Label(self.error_modal_frame, text=self.error_txt, bg='#edeff2', font=('Arial', 14))
         self.error_msg.place(relx=0, rely=0.1, relwidth=1, relheight=0.3)
-        self.confirm_btn = Button(self.error_modal_frame, text='Ok', command=self.root_error_modal.destroy, bd=2)
-        self.confirm_btn.place(relx= 0.1, rely=0.5, relwidth=0.8, relheight=0.2)
+        self.confirm_btn = Button(self.error_modal_frame, text='Ok', command=self.root_error_modal.destroy, bd=2, bg='#babdc2', fg='white')
+        self.confirm_btn.place(relx= 0.1, rely=0.5, relwidth=0.8, relheight=0.15)
     def screen_frames(self):
         self.frame_1 = Frame(self.root, bd=4, bg='#edeff2', highlightbackground='white', highlightthickness=3)
         self.frame_1.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.25)
@@ -290,7 +307,7 @@ class Application(Funcs):
         self.btn_edit_aut = Button(self.frame_2, text='Editar automação', command=self.edit_screen, bd=2, bg='#5a4aed', fg='white')
         self.btn_edit_aut.place(relx=0.62, rely=0.45, relwidth=0.36, relheight=0.09)
 
-        self.btn_del_aut = Button(self.frame_2, text='Excluir automação', command=self.delete_automation, bd=2, bg='#c93045', fg='white')
+        self.btn_del_aut = Button(self.frame_2, text='Excluir automação', command=self.delete_aut_confirmation, bd=2, bg='#c93045', fg='white')
         self.btn_del_aut.place(relx=0.62, rely=0.55, relwidth=0.36, relheight=0.09)
     def edit_widget_frame(self):
         self.tree_command = ttk.Treeview(self.edit_frame, height=3, column=('col1', 'col2', 'col3'), show='headings')
@@ -329,32 +346,65 @@ class Application(Funcs):
         self.cmd_seleted.place(relx=0.62, rely=0.3, relwidth=0.36, relheight=0.09)
         self.btn_edt_cmd = Button(self.edit_frame, text='Editar comando', command=self.edit_command_widgets, bd=2, bg='#5a4aed', fg='white')
         self.btn_edt_cmd.place(relx=0.62, rely=0.40, relwidth=0.36, relheight=0.07)
-        self.btn_del_cmd = Button(self.edit_frame, text='Excluir comando', command=self.delete_command, bd=2, bg='#c93045', fg='white')
+        self.btn_del_cmd = Button(self.edit_frame, text='Excluir comando', command=self.confirm_del_cmd, bd=2, bg='#c93045', fg='white')
         self.btn_del_cmd.place(relx=0.62, rely=0.50, relwidth=0.36, relheight=0.06)
 
         self.add_below_lbl = Label(self.edit_frame, text='Adicionar comando abaixo', bg='#edeff2', font=('Arial', 13))
         self.add_below_lbl.place(relx=0.62, rely=0.8, relwidth=0.36, relheight=0.09)
         self.add_below_btn = Button(self.edit_frame, text='+', bd=2, bg='#dae1eb')
         self.add_below_btn.place(relx=0.62, rely=0.77, relwidth=0.36, relheight=0.05)
+    def confirm_del_cmd(self):
+        if self.command_selected == '':
+            self.error_txt = 'Nenhum comando selecionado'
+        else:
+            self.confirm_cmd_del = True
+        self.error_modal_screen()
+    def reset_confirm_cmd_del(self):
+        self.confirm_cmd_del = False
+        self.root_error_modal.destroy()
     def show_keyboard_opt(self):
         pass
     def show_mouse_opt(self):
         pass
+    def clean_del_confirm(self):
+        self.aut_name_selected = ''
+        self.auto_selected.config(text=self.aut_name_selected)
+        self.update_tree()
+        self.del_confirmation_msg.destroy()
+        self.del_cancel_btn.destroy()
+        self.del_confirm_btn.destroy()
+        self.widgets_frame_1()
+    def delete_aut_confirmation(self):
+        if self.aut_name_selected == '':
+            self.error_txt = 'Nenhuma automação selecionada'
+            self.error_modal_screen()
+        else:
+            self.btn_add_aut.destroy()
+            self.del_confirmation_msg = Label(self.frame_1, text='Deseja excluir a automação?', bg='#edeff2', font=('Arial', 13))
+            self.del_confirmation_msg.place(relx=0.2, rely=0.1, relwidth=0.6, relheight=0.1)
+            self.del_cancel_btn = Button(self.frame_1, text='Cancelar', command=self.clean_del_confirm, bd=2, bg='#c93045', fg='white')
+            self.del_cancel_btn.place(relx=0.25, rely=0.5, relwidth=0.23, relheight=0.30)
+            self.del_confirm_btn = Button(self.frame_1, text='Excluir', command=self.delete_automation, bd=2, bg='#00A86B', fg='white')
+            self.del_confirm_btn.place(relx=0.55, rely=0.5, relwidth=0.23, relheight=0.30)
     def edit_command_widgets(self):
-        self.tree_command.destroy()
-        self.ed_scroll.destroy()
-        self.add_above_lbl.destroy()
-        self.add_above_btn.destroy()
-        self.cmd_seleted.destroy()
-        self.btn_edt_cmd.destroy()
-        self.btn_del_cmd.destroy()
-        self.add_below_lbl.destroy()
-        self.add_below_btn.destroy()
+        if self.command_selected == '':
+            self.error_txt = 'Nenhum comando selecionado'
+            self.error_modal_screen()
+        else:
+            self.tree_command.destroy()
+            self.ed_scroll.destroy()
+            self.add_above_lbl.destroy()
+            self.add_above_btn.destroy()
+            self.cmd_seleted.destroy()
+            self.btn_edt_cmd.destroy()
+            self.btn_del_cmd.destroy()
+            self.add_below_lbl.destroy()
+            self.add_below_btn.destroy()
 
-        self.btn_keyboard_opt = Button(self.edit_frame, text='Comandos teclado', bd=2, bg='#dae1eb')
-        self.btn_keyboard_opt.place(relx=0.05, rely=0.02, relwidth=0.4, relheight=0.07)
-        self.btn_mouse_opt = Button(self.edit_frame, text='Comandos mouse', bd=2, bg='#dae1eb')
-        self.btn_mouse_opt.place(relx=0.55, rely=0.02, relwidth=0.4, relheight=0.07)
+            self.btn_keyboard_opt = Button(self.edit_frame, text='Comandos teclado', bd=2, bg='#dae1eb')
+            self.btn_keyboard_opt.place(relx=0.05, rely=0.02, relwidth=0.4, relheight=0.07)
+            self.btn_mouse_opt = Button(self.edit_frame, text='Comandos mouse', bd=2, bg='#dae1eb')
+            self.btn_mouse_opt.place(relx=0.55, rely=0.02, relwidth=0.4, relheight=0.07)
 
 
 Application()
