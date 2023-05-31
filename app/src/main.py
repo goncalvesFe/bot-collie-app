@@ -17,7 +17,7 @@ class Funcs():
     def create_tables(self):
         self.connect_database()
         self.cursor.execute('CREATE TABLE IF NOT EXISTS automacao (id integer PRIMARY KEY, name text)')
-        self.cursor.execute("CREATE TABLE IF NOT EXISTS comando (id integer PRIMARY KEY, automacao_id int, command text, cmdOrder int)")
+        self.cursor.execute("CREATE TABLE IF NOT EXISTS comando (id integer PRIMARY KEY, automacao_id int, type text, subtype text, command text, cmdOrder int)")
         self.conn.commit()
         self.disconnect_database()
     def delete_automation(self):
@@ -49,12 +49,15 @@ class Funcs():
         self.connect_database
         cmd_counter = 1
         for command in self.commands:
-            if hasattr(command, 'char'):
-                insert_query = f"INSERT INTO comando (automacao_id, command, cmdOrder) VALUES ({self.new_aut_id}, {command}, {cmd_counter})"
+            type = f"'{command[0]}'"
+            subtype = f"'{command[1]}'"
+            the_command = command[2]
+            if hasattr(the_command, 'char'):
+                insert_query = f"INSERT INTO comando (automacao_id, type, subtype, command, cmdOrder) VALUES ({self.new_aut_id}, {type}, {subtype}, {the_command}, {cmd_counter})"
                 self.cursor.execute(insert_query)
             else:
-                cmd = f"'{command}'"
-                insert_query = f"INSERT INTO comando (automacao_id, command, cmdOrder) VALUES ({self.new_aut_id}, {cmd}, {cmd_counter})"
+                cmd = f"'{the_command}'"
+                insert_query = f"INSERT INTO comando (automacao_id, type, subtype, command, cmdOrder) VALUES ({self.new_aut_id}, {type}, {subtype}, {cmd}, {cmd_counter})"
                 self.cursor.execute(insert_query)
             cmd_counter = cmd_counter + 1
         self.conn.commit()
@@ -87,21 +90,20 @@ class Funcs():
             self.tree_command.insert("", END, values=i)
         self.disconnect_database()
     def init_listeners(self):
+        # estrutura dos comandos adicionados sempre será:
+        # commands = [['type', 'subtype', 'cmd'], ['type', 'subtype', 'cmd'], ...]
         pyautogui.hotkey('win', 'd')
         def on_press(key):
-            self.commands.append(key)
+            self.commands.append(['keyboard', 'press', key])
             try:
                 print('alphanumeric key {0} pressed'.format(key.char))
             except AttributeError:
                 print('special key {0} pressed'.format(key))
         def on_release(key):
             if key == keyboard.Key.esc:
-                print('stop listener')
-                for command in self.commands:
-                    print(command)
                 self.save_automation()
                 # Stop listeners
-                self.mouse_listener.stop()
+                # self.mouse_listener.stop()
                 return False
         def on_move(x, y):
             # print('Pointer moved to {0}'.format((x, y)))
@@ -129,8 +131,9 @@ class Funcs():
             self.commands.append(mouse_scroll)
         self.keyboard_listener = keyboard.Listener(on_press=on_press, on_release=on_release)
         self.keyboard_listener.start()
-        self.mouse_listener = mouse.Listener(on_move=on_move, on_click=on_click, on_scroll=on_scroll)
-        self.mouse_listener.start()
+        # self.mouse_listener = mouse.Listener(on_move=on_move, on_click=on_click, on_scroll=on_scroll)
+        # self.mouse_listener.start()
+        # não esquecer de descomentar a linha 106
     def run_automation(self):
         if self.aut_name_selected == '':
             self.error_txt = 'Nenhuma automação selecionada'
@@ -141,11 +144,22 @@ class Funcs():
             commands = self.cursor.execute(f"SELECT * FROM comando WHERE automacao_id='{aut_id}'").fetchall()
             pyautogui.hotkey('win', 'd')
             for command in commands:
-                cmd = command[2]
-                print('cmd: ', cmd)
+                type = command[2]
+                subtype = command[3]
+                cmd = command[4]
                 cmd_str_split = cmd.split('-')
-                print('cmd_str_split: ', cmd_str_split)
-                if len(cmd_str_split) > 1:
+                # print('cmd_str_split: ', cmd_str_split)
+                if type == 'keyboard':
+                    print('keyboard action')
+                    if subtype == 'press':
+                        if len(cmd.split('.')) == 1:
+                            pyautogui.press(cmd)
+                        else:
+                            special_cmd = cmd.split('.')[1]
+                            if special_cmd == 'cmd':
+                                special_cmd = 'win'
+                            pyautogui.press(special_cmd)
+                else:
                     mouse_parameters = cmd_str_split[1].split(',')
                     print('mouse_parameters: ', mouse_parameters)
                     pos_x = int(mouse_parameters[0].split(':')[1])
@@ -169,19 +183,11 @@ class Funcs():
                                 pyautogui.hscroll(10, x=pos_x, y=pos_y)
                             else:
                                 pyautogui.hscroll(-10, x=pos_x, y=pos_y)
-                else:
-                    if len(cmd.split('.')) == 1:
-                        pyautogui.press(cmd)
-                    else:
-                        special_cmd = cmd.split('.')[1]
-                        if special_cmd == 'cmd':
-                            special_cmd = 'win'
-                    pyautogui.press(special_cmd)
             self.disconnect_database()
     def temp_check_tables(self):
         self.connect_database()
         las_aut_id = self.cursor.execute('SELECT MAX(id) FROM automacao').fetchone()[0]
-        comandos = self.cursor.execute(f'SELECT command, cmdOrder FROM comando WHERE automacao_id = {las_aut_id}').fetchall()
+        comandos = self.cursor.execute(f'SELECT type, subtype, command, cmdOrder FROM comando WHERE automacao_id = {las_aut_id}').fetchall()
         print('comandos: ',comandos)
         self.disconnect_database()
 
