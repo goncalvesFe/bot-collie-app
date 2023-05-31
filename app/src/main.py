@@ -148,9 +148,7 @@ class Funcs():
                 subtype = command[3]
                 cmd = command[4]
                 cmd_str_split = cmd.split('-')
-                # print('cmd_str_split: ', cmd_str_split)
                 if type == 'keyboard':
-                    print('keyboard action')
                     if subtype == 'press':
                         if len(cmd.split('.')) == 1:
                             pyautogui.press(cmd)
