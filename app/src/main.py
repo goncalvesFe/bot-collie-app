@@ -191,6 +191,7 @@ class Funcs():
 
 class Application(Funcs):
     def __init__(self):
+        self.config_constants()
         # self.temp_check_tables()
         self.error_txt = 'Ocorreu um erro'
         self.confirm_cmd_del = False
@@ -204,8 +205,11 @@ class Application(Funcs):
         self.create_tables()
         self.update_tree()
         root.mainloop()
+    def config_constants(self):
+        self.app_version = '1.0'
+        self.title = f'Bot Collie - v_{self.app_version}'
     def screen(self):
-        self.root.title('Bot Collie')
+        self.root.title(self.title)
         self.root.configure(background='#babdc2')
         self.root.geometry("900x800")
         self.root.resizable(True, True)
