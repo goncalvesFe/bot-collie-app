@@ -210,6 +210,7 @@ class Application(Funcs):
         self.title = f'Bot Collie - v_{self.app_version}'
         self.root_bg_color = '#babdc2'
         self.frame_bg_color = '#edeff2'
+        self.edit_btn_color = '#dae1eb'
     def screen(self):
         self.root.title(self.title)
         self.root.configure(background=self.root_bg_color)
@@ -308,7 +309,7 @@ class Application(Funcs):
         self.tree_aut.configure(yscroll=self.scroll)
         self.scroll.place(relx=0.57, rely=0, relwidth=0.02, relheight=1)
 
-        self.auto_selected = Label(self.frame_2, text='Selecione a automação', bg='#dae1eb', font=('Arial', 15))
+        self.auto_selected = Label(self.frame_2, text='Selecione a automação', bg=self.edit_btn_color, font=('Arial', 15))
         self.auto_selected.place(relx=0.62, rely=0.03, relwidth=0.36, relheight=0.09)
 
         self.btn_run_aut = Button(self.frame_2, text='Rodar automação', command=self.run_automation, bd=2, bg='#00A86B', fg='white')
@@ -349,19 +350,19 @@ class Application(Funcs):
 
         self.add_above_lbl = Label(self.edit_frame, text='Adicionar comando acima', bg=self.frame_bg_color, font=('Arial', 13))
         self.add_above_lbl.place(relx=0.62, rely=0.03, relwidth=0.36, relheight=0.09)
-        self.add_above_btn = Button(self.edit_frame, text='+', bd=2, bg='#dae1eb')
+        self.add_above_btn = Button(self.edit_frame, text='+', command=self.set_add_cmd_above, bd=2, bg=self.edit_btn_color)
         self.add_above_btn.place(relx=0.62, rely=0.1, relwidth=0.36, relheight=0.05)
 
-        self.cmd_seleted = Label(self.edit_frame, text='Selecione o comando', bg='#dae1eb', font=('Arial', 15))
+        self.cmd_seleted = Label(self.edit_frame, text='Selecione o comando', bg=self.edit_btn_color, font=('Arial', 15))
         self.cmd_seleted.place(relx=0.62, rely=0.3, relwidth=0.36, relheight=0.09)
-        self.btn_edt_cmd = Button(self.edit_frame, text='Editar comando', command=self.edit_command_widgets, bd=2, bg='#5a4aed', fg='white')
+        self.btn_edt_cmd = Button(self.edit_frame, text='Editar comando', command=self.add_command_widgets, bd=2, bg='#5a4aed', fg='white')
         self.btn_edt_cmd.place(relx=0.62, rely=0.40, relwidth=0.36, relheight=0.07)
         self.btn_del_cmd = Button(self.edit_frame, text='Excluir comando', command=self.confirm_del_cmd, bd=2, bg='#c93045', fg='white')
         self.btn_del_cmd.place(relx=0.62, rely=0.50, relwidth=0.36, relheight=0.06)
 
         self.add_below_lbl = Label(self.edit_frame, text='Adicionar comando abaixo', bg=self.frame_bg_color, font=('Arial', 13))
         self.add_below_lbl.place(relx=0.62, rely=0.8, relwidth=0.36, relheight=0.09)
-        self.add_below_btn = Button(self.edit_frame, text='+', bd=2, bg='#dae1eb')
+        self.add_below_btn = Button(self.edit_frame, text='+', command=self.add_command_widgets, bd=2, bg=self.edit_btn_color)
         self.add_below_btn.place(relx=0.62, rely=0.77, relwidth=0.36, relheight=0.05)
     def confirm_del_cmd(self):
         if self.command_selected == '':
@@ -396,7 +397,48 @@ class Application(Funcs):
             self.del_cancel_btn.place(relx=0.25, rely=0.5, relwidth=0.23, relheight=0.30)
             self.del_confirm_btn = Button(self.frame_1, text='Excluir', command=self.delete_automation, bd=2, bg='#00A86B', fg='white')
             self.del_confirm_btn.place(relx=0.55, rely=0.5, relwidth=0.23, relheight=0.30)
-    def edit_command_widgets(self):
+    def set_add_cmd_above(self):
+        if self.command_selected == '':
+            self.error_txt = 'Nenhum comando selecionado'
+            self.error_modal_screen()
+        else:
+            # buscar as informações do comando selecionado
+            # abrir novo modal menor de adição. Melhor do que ficar destroindo e criando mil componentes
+            self.root_add_cmd = Toplevel()
+            self.root_add_cmd.configure(background=self.root_bg_color)
+            self.root_add_cmd.geometry("700x500")
+            self.root_add_cmd.resizable(True, True)
+            self.root_add_cmd.maxsize(width=1100, height=900)
+            self.root_add_cmd.minsize(width=400, height=300)
+            self.add_cmd_frame = Frame(self.root_add_cmd, bd=4, bg=self.frame_bg_color, highlightbackground='white', highlightthickness=3)
+            self.add_cmd_frame.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
+            self.add_cmd_wiget_frame()
+    def add_cmd_wiget_frame(self):
+        self.btn_keyboard_opt = Button(self.add_cmd_frame, text='Comandos teclado', command=self.open_keyboard_cmds, bd=2, bg=self.edit_btn_color)
+        self.btn_keyboard_opt.place(relx=0.05, rely=0.02, relwidth=0.4, relheight=0.07)
+        self.btn_mouse_opt = Button(self.add_cmd_frame, text='Comandos mouse', bd=2, bg=self.edit_btn_color)
+        self.btn_mouse_opt.place(relx=0.55, rely=0.02, relwidth=0.4, relheight=0.07)
+    def open_keyboard_cmds(self):
+        self.btn_keyboard_opt.destroy()
+        self.btn_mouse_opt.destroy()
+        self.add_cmd_keyboard_title = Label(self.add_cmd_frame, text='Selecione o tipo de comando', bg=self.frame_bg_color, font=('Arial', 15))
+        self.add_cmd_keyboard_title.place(relx=0, rely=0, relwidth=1, relheight=0.2)
+
+        self.btn_press = Button(self.add_cmd_frame, text='Pressionar', bd=2, bg=self.edit_btn_color)
+        self.btn_press.place(relx=0.1667, rely=0.25, relwidth=0.25, relheight=0.1)
+
+        self.btn_write= Button(self.add_cmd_frame, text='Escrever', bd=2, bg=self.edit_btn_color)
+        self.btn_write.place(relx=0.5834, rely=0.25, relwidth=0.25, relheight=0.1)
+
+        self.btn_hold = Button(self.add_cmd_frame, text='Segurar', bd=2, bg=self.edit_btn_color)
+        self.btn_hold.place(relx=0.1667, rely=0.4, relwidth=0.25, relheight=0.1)
+
+        self.btn_key_up= Button(self.add_cmd_frame, text='Soltar', bd=2, bg=self.edit_btn_color)
+        self.btn_key_up.place(relx=0.5834, rely=0.4, relwidth=0.25, relheight=0.1)
+
+        self.btn_hotkey = Button(self.add_cmd_frame, text='Atalho', bd=2, bg=self.edit_btn_color)
+        self.btn_hotkey.place(relx=0.375, rely=0.55, relwidth=0.25, relheight=0.1)
+    def add_command_widgets(self):
         if self.command_selected == '':
             self.error_txt = 'Nenhum comando selecionado'
             self.error_modal_screen()
@@ -411,9 +453,9 @@ class Application(Funcs):
             self.add_below_lbl.destroy()
             self.add_below_btn.destroy()
 
-            self.btn_keyboard_opt = Button(self.edit_frame, text='Comandos teclado', bd=2, bg='#dae1eb')
+            self.btn_keyboard_opt = Button(self.edit_frame, text='Comandos teclado', bd=2, bg=self.edit_btn_color)
             self.btn_keyboard_opt.place(relx=0.05, rely=0.02, relwidth=0.4, relheight=0.07)
-            self.btn_mouse_opt = Button(self.edit_frame, text='Comandos mouse', bd=2, bg='#dae1eb')
+            self.btn_mouse_opt = Button(self.edit_frame, text='Comandos mouse', bd=2, bg=self.edit_btn_color)
             self.btn_mouse_opt.place(relx=0.55, rely=0.02, relwidth=0.4, relheight=0.07)
 
 
