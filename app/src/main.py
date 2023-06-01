@@ -208,9 +208,11 @@ class Application(Funcs):
     def config_constants(self):
         self.app_version = '1.0'
         self.title = f'Bot Collie - v_{self.app_version}'
+        self.root_bg_color = '#babdc2'
+        self.frame_bg_color = '#edeff2'
     def screen(self):
         self.root.title(self.title)
-        self.root.configure(background='#babdc2')
+        self.root.configure(background=self.root_bg_color)
         self.root.geometry("900x800")
         self.root.resizable(True, True)
         self.root.maxsize(width=1100, height=900)
@@ -221,54 +223,54 @@ class Application(Funcs):
             self.error_modal_screen()
         else:
             self.root_edit = Toplevel()
-            self.root_edit.configure(background='#babdc2')
+            self.root_edit.configure(background=self.root_bg_color)
             self.root_edit.geometry("900x700")
             self.root_edit.resizable(True, True)
             self.root_edit.maxsize(width=1100, height=900)
             self.root_edit.minsize(width=400, height=300)
-            self.edit_frame = Frame(self.root_edit, bd=4, bg='#edeff2', highlightbackground='white', highlightthickness=3)
+            self.edit_frame = Frame(self.root_edit, bd=4, bg=self.frame_bg_color, highlightbackground='white', highlightthickness=3)
             self.edit_frame.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
             self.edit_widget_frame()
             self.update_edit_tree()
     def error_modal_screen(self):
         self.root_error_modal = Toplevel()
-        self.root_error_modal.configure(background='#babdc2')
+        self.root_error_modal.configure(background=self.root_bg_color)
         self.root_error_modal.geometry("450x350")
         self.root_error_modal.resizable(True, True)
         self.root_error_modal.maxsize(width=900, height=450)
         self.root_error_modal.minsize(width=100, height=100)
-        self.error_modal_frame = Frame(self.root_error_modal, bd=4, bg='#edeff2', highlightbackground='white', highlightthickness=3)
+        self.error_modal_frame = Frame(self.root_error_modal, bd=4, bg=self.frame_bg_color, highlightbackground='white', highlightthickness=3)
         self.error_modal_frame.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
         if self.confirm_cmd_del:
             self.widget_confirm_cmd_del()
         else:
             self.widget_error_modal()
     def widget_confirm_cmd_del(self):
-        self.del_cmd_msg = Label(self.error_modal_frame, text='Deseja excluir o comando?', bg='#edeff2', font=('Arial', 14))
+        self.del_cmd_msg = Label(self.error_modal_frame, text='Deseja excluir o comando?', bg=self.frame_bg_color, font=('Arial', 14))
         self.del_cmd_msg.place(relx=0, rely=0.1, relwidth=1, relheight=0.3)
         self.Ndel_cmd_confirm_btn = Button(self.error_modal_frame, text='Cancelar', command=self.reset_confirm_cmd_del, bd=2, bg='#c93045', fg='white')
         self.Ndel_cmd_confirm_btn.place(relx= 0.15, rely=0.5, relwidth=0.3, relheight=0.15)
         self.del_cmd_confirm_btn = Button(self.error_modal_frame, text='Excluir', command=self.delete_command, bd=2, bg='#00A86B', fg='white')
         self.del_cmd_confirm_btn.place(relx= 0.55, rely=0.5, relwidth=0.3, relheight=0.15)
     def widget_error_modal(self):
-        self.error_msg = Label(self.error_modal_frame, text=self.error_txt, bg='#edeff2', font=('Arial', 14))
+        self.error_msg = Label(self.error_modal_frame, text=self.error_txt, bg=self.frame_bg_color, font=('Arial', 14))
         self.error_msg.place(relx=0, rely=0.1, relwidth=1, relheight=0.3)
-        self.confirm_btn = Button(self.error_modal_frame, text='Ok', command=self.root_error_modal.destroy, bd=2, bg='#babdc2', fg='white')
+        self.confirm_btn = Button(self.error_modal_frame, text='Ok', command=self.root_error_modal.destroy, bd=2, bg=self.root_bg_color, fg='white')
         self.confirm_btn.place(relx= 0.1, rely=0.5, relwidth=0.8, relheight=0.15)
     def screen_frames(self):
-        self.frame_1 = Frame(self.root, bd=4, bg='#edeff2', highlightbackground='white', highlightthickness=3)
+        self.frame_1 = Frame(self.root, bd=4, bg=self.frame_bg_color, highlightbackground='white', highlightthickness=3)
         self.frame_1.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.25)
-        self.frame_2 = Frame(self.root, bd=4, bg='#edeff2', highlightbackground='white', highlightthickness=3)
+        self.frame_2 = Frame(self.root, bd=4, bg=self.frame_bg_color, highlightbackground='white', highlightthickness=3)
         self.frame_2.place(relx=0.02, rely=0.3, relwidth=0.96, relheight=0.68)
     def widgets_frame_1(self):
         self.logo_img = PhotoImage(file='assets/bot_collie_logo90X70.png')
-        self.logo = Label(self.frame_1, image=self.logo_img, bg='#edeff2')
+        self.logo = Label(self.frame_1, image=self.logo_img, bg=self.frame_bg_color)
         self.logo.place(relx=0, rely=0)
         self.btn_add_aut = Button(self.frame_1, text='Criar nova automação', command=self.show_add_aut_confirmation, bd=2, bg='#00A86B', fg='white')
         self.btn_add_aut.place(relx=0.62, rely=0.5, relwidth=0.36, relheight=0.30)
     def show_add_aut_confirmation(self):
         self.btn_add_aut.destroy()
-        self.confirmation_msg = Label(self.frame_1, text='Para criar uma nova automação clique em Iniciar', bg='#edeff2', font=('Arial', 13))
+        self.confirmation_msg = Label(self.frame_1, text='Para criar uma nova automação clique em Iniciar', bg=self.frame_bg_color, font=('Arial', 13))
         self.confirmation_msg.place(relx=0.2, rely=0.1, relwidth=0.6, relheight=0.1)
         self.cancel_btn = Button(self.frame_1, text='Cancelar', command=self.clean_add_aut, bd=2, bg='#c93045', fg='white')
         self.cancel_btn.place(relx=0.25, rely=0.5, relwidth=0.23, relheight=0.30)
@@ -345,7 +347,7 @@ class Application(Funcs):
         self.tree_command.configure(yscroll=self.scroll)
         self.ed_scroll.place(relx=0.57, rely=0, relwidth=0.02, relheight=1)
 
-        self.add_above_lbl = Label(self.edit_frame, text='Adicionar comando acima', bg='#edeff2', font=('Arial', 13))
+        self.add_above_lbl = Label(self.edit_frame, text='Adicionar comando acima', bg=self.frame_bg_color, font=('Arial', 13))
         self.add_above_lbl.place(relx=0.62, rely=0.03, relwidth=0.36, relheight=0.09)
         self.add_above_btn = Button(self.edit_frame, text='+', bd=2, bg='#dae1eb')
         self.add_above_btn.place(relx=0.62, rely=0.1, relwidth=0.36, relheight=0.05)
@@ -357,7 +359,7 @@ class Application(Funcs):
         self.btn_del_cmd = Button(self.edit_frame, text='Excluir comando', command=self.confirm_del_cmd, bd=2, bg='#c93045', fg='white')
         self.btn_del_cmd.place(relx=0.62, rely=0.50, relwidth=0.36, relheight=0.06)
 
-        self.add_below_lbl = Label(self.edit_frame, text='Adicionar comando abaixo', bg='#edeff2', font=('Arial', 13))
+        self.add_below_lbl = Label(self.edit_frame, text='Adicionar comando abaixo', bg=self.frame_bg_color, font=('Arial', 13))
         self.add_below_lbl.place(relx=0.62, rely=0.8, relwidth=0.36, relheight=0.09)
         self.add_below_btn = Button(self.edit_frame, text='+', bd=2, bg='#dae1eb')
         self.add_below_btn.place(relx=0.62, rely=0.77, relwidth=0.36, relheight=0.05)
@@ -388,7 +390,7 @@ class Application(Funcs):
             self.error_modal_screen()
         else:
             self.btn_add_aut.destroy()
-            self.del_confirmation_msg = Label(self.frame_1, text='Deseja excluir a automação?', bg='#edeff2', font=('Arial', 13))
+            self.del_confirmation_msg = Label(self.frame_1, text='Deseja excluir a automação?', bg=self.frame_bg_color, font=('Arial', 13))
             self.del_confirmation_msg.place(relx=0.2, rely=0.1, relwidth=0.6, relheight=0.1)
             self.del_cancel_btn = Button(self.frame_1, text='Cancelar', command=self.clean_del_confirm, bd=2, bg='#c93045', fg='white')
             self.del_cancel_btn.place(relx=0.25, rely=0.5, relwidth=0.23, relheight=0.30)
