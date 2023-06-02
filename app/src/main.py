@@ -1,6 +1,6 @@
 import sqlite3
 from tkinter import *
-from tkinter import ttk
+from tkinter import ttk, messagebox
 
 import pyautogui
 from pynput import keyboard, mouse
@@ -182,6 +182,15 @@ class Funcs():
                             else:
                                 pyautogui.hscroll(-10, x=pos_x, y=pos_y)
             self.disconnect_database()
+    def save_keyboard_cmd(self):
+        input_len = len(self.edit_input.get())
+        if input_len == 0:
+            messagebox.showerror(title='Erro', message='Entrada vazia')
+        elif input_len > self.entry_limit:
+            messagebox.showwarning(title='Atenção!', message='Número de characters é maior que o permitido.')
+        else:
+            # adicionar lógica de salvar novo comando -> importante a order
+            print('salvar')
     def temp_check_tables(self):
         self.connect_database()
         las_aut_id = self.cursor.execute('SELECT MAX(id) FROM automacao').fetchone()[0]
@@ -424,7 +433,7 @@ class Application(Funcs):
         self.add_cmd_keyboard_title = Label(self.add_cmd_frame, text='Selecione o tipo de comando', bg=self.frame_bg_color, font=('Arial', 15))
         self.add_cmd_keyboard_title.place(relx=0, rely=0, relwidth=1, relheight=0.2)
 
-        self.btn_press = Button(self.add_cmd_frame, text='Pressionar', bd=2, bg=self.edit_btn_color)
+        self.btn_press = Button(self.add_cmd_frame, text='Pressionar', command=self.keyboard_press, bd=2, bg=self.edit_btn_color)
         self.btn_press.place(relx=0.1667, rely=0.25, relwidth=0.25, relheight=0.1)
 
         self.btn_write= Button(self.add_cmd_frame, text='Escrever', bd=2, bg=self.edit_btn_color)
@@ -438,6 +447,22 @@ class Application(Funcs):
 
         self.btn_hotkey = Button(self.add_cmd_frame, text='Atalho', bd=2, bg=self.edit_btn_color)
         self.btn_hotkey.place(relx=0.375, rely=0.55, relwidth=0.25, relheight=0.1)
+    def clean_open_keyboard_cmds(self):
+        self.add_cmd_keyboard_title.destroy()
+        self.btn_press.destroy()
+        self.btn_write.destroy()
+        self.btn_hold.destroy()
+        self.btn_key_up.destroy()
+        self.btn_hotkey.destroy()
+    def keyboard_press(self):
+        self.clean_open_keyboard_cmds()
+        self.press_label = Label(self.add_cmd_frame, text='Pressionar', bg=self.frame_bg_color, font=('Arial', 15))
+        self.press_label.place(relx=0, rely=0, relwidth=1, relheight=0.2)
+        self.edit_input = Entry(self.add_cmd_frame, bg=self.edit_btn_color)
+        self.edit_input.place(relx=0.375, rely=0.2, relwidth=0.25, relheight=0.1)
+        self.entry_limit = 1
+        self.btn_save = Button(self.add_cmd_frame, text='Salvar', command=self.save_keyboard_cmd, bd=2, bg=self.edit_btn_color)
+        self.btn_save.place(relx=0.375, rely=0.35, relwidth=0.25, relheight=0.1)
     def add_command_widgets(self):
         if self.command_selected == '':
             self.error_txt = 'Nenhum comando selecionado'
