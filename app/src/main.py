@@ -457,9 +457,9 @@ class Application(Funcs):
             self.add_cmd_wiget_frame()
     def add_cmd_wiget_frame(self):
         self.btn_keyboard_opt = Button(self.add_cmd_frame, text='Comandos teclado', command=self.open_keyboard_cmds, bd=2, bg=self.edit_btn_color)
-        self.btn_keyboard_opt.place(relx=0.05, rely=0.02, relwidth=0.4, relheight=0.07)
+        self.btn_keyboard_opt.place(relx=0.05, rely=0.02, relwidth=0.4, relheight=0.1)
         self.btn_mouse_opt = Button(self.add_cmd_frame, text='Comandos mouse', bd=2, bg=self.edit_btn_color)
-        self.btn_mouse_opt.place(relx=0.55, rely=0.02, relwidth=0.4, relheight=0.07)
+        self.btn_mouse_opt.place(relx=0.55, rely=0.02, relwidth=0.4, relheight=0.1)
     def open_keyboard_cmds(self):
         self.btn_keyboard_opt.destroy()
         self.btn_mouse_opt.destroy()
