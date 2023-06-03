@@ -39,7 +39,10 @@ class Funcs():
         self.disconnect_database()
     def update_all_cmd_order(self):
         self.connect_database()
-        ids = self.cursor.execute(f"SELECT id FROM comando WHERE automacao_id='{self.aut_id_selected}' ORDER BY cmdOrder ASC").fetchall()
+        select_query = f"SELECT id FROM comando WHERE automacao_id='{self.aut_id_selected}' ORDER BY cmdOrder ASC"
+        if self.add_cmd_dir == 'below':
+            select_query = f"{select_query}, id DESC"
+        ids = self.cursor.execute(select_query).fetchall()
         order_to_update = 1
         for id in ids:
             self.cursor.execute(f"UPDATE comando SET cmdOrder = '{order_to_update}' WHERE id = '{id[0]}'")
@@ -199,7 +202,6 @@ class Funcs():
             messagebox.showwarning(title='Atenção!', message='Número de characters é maior que o permitido.')
         else:
             cmdOrder = 0
-            print('self.add_cmd_dir: ',self.add_cmd_dir)
             if self.add_cmd_dir == 'above':
                 cmdOrder = self.cmd_order_selected - 1
             else:
@@ -226,7 +228,7 @@ class Application(Funcs):
         self.config_constants()
         # self.temp_check_tables()
         self.error_txt = 'Ocorreu um erro'
-        self.conf9irm_cmd_del = False
+        self.confirm_cmd_del = False
         self.commands = []
         self.new_aut_id = 0
         self.root = root
@@ -467,7 +469,7 @@ class Application(Funcs):
         self.btn_press = Button(self.add_cmd_frame, text='Pressionar', command=self.keyboard_press, bd=2, bg=self.edit_btn_color)
         self.btn_press.place(relx=0.1667, rely=0.25, relwidth=0.25, relheight=0.1)
 
-        self.btn_write= Button(self.add_cmd_frame, text='Escrever', bd=2, bg=self.edit_btn_color)
+        self.btn_write= Button(self.add_cmd_frame, text='Escrever',command=self.keyboard_write, bd=2, bg=self.edit_btn_color)
         self.btn_write.place(relx=0.5834, rely=0.25, relwidth=0.25, relheight=0.1)
 
         self.btn_hold = Button(self.add_cmd_frame, text='Segurar', bd=2, bg=self.edit_btn_color)
@@ -487,12 +489,20 @@ class Application(Funcs):
         self.btn_hotkey.destroy()
     def keyboard_press(self):
         self.subtype_cmd = 'press'
+        self.add_cmd_label = 'Pressionar'
+        self.entry_limit = 1
+        self.open_add_cmds()
+    def keyboard_write(self):
+        self.subtype_cmd = 'write'
+        self.add_cmd_label = 'Escrever'
+        self.entry_limit = 25
+        self.open_add_cmds()
+    def open_add_cmds(self):
         self.clean_open_keyboard_cmds()
-        self.press_label = Label(self.add_cmd_frame, text='Pressionar', bg=self.frame_bg_color, font=('Arial', 15))
+        self.press_label = Label(self.add_cmd_frame, text=self.add_cmd_label, bg=self.frame_bg_color, font=('Arial', 15))
         self.press_label.place(relx=0, rely=0, relwidth=1, relheight=0.2)
         self.edit_input = Entry(self.add_cmd_frame, bg=self.edit_btn_color)
         self.edit_input.place(relx=0.375, rely=0.2, relwidth=0.25, relheight=0.1)
-        self.entry_limit = 1
         self.btn_save = Button(self.add_cmd_frame, text='Salvar', command=self.save_keyboard_cmd, bd=2, bg=self.edit_btn_color)
         self.btn_save.place(relx=0.375, rely=0.35, relwidth=0.25, relheight=0.1)
     def add_command_widgets(self):
