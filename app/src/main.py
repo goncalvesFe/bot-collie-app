@@ -472,10 +472,10 @@ class Application(Funcs):
         self.btn_write= Button(self.add_cmd_frame, text='Escrever',command=self.keyboard_write, bd=2, bg=self.edit_btn_color)
         self.btn_write.place(relx=0.5834, rely=0.25, relwidth=0.25, relheight=0.1)
 
-        self.btn_hold = Button(self.add_cmd_frame, text='Segurar', bd=2, bg=self.edit_btn_color)
+        self.btn_hold = Button(self.add_cmd_frame, text='Segurar', command=self.keyboard_hold, bd=2, bg=self.edit_btn_color)
         self.btn_hold.place(relx=0.1667, rely=0.4, relwidth=0.25, relheight=0.1)
 
-        self.btn_key_up= Button(self.add_cmd_frame, text='Soltar', bd=2, bg=self.edit_btn_color)
+        self.btn_key_up= Button(self.add_cmd_frame, text='Soltar', command=self.keyboard_helease, bd=2, bg=self.edit_btn_color)
         self.btn_key_up.place(relx=0.5834, rely=0.4, relwidth=0.25, relheight=0.1)
 
         self.btn_hotkey = Button(self.add_cmd_frame, text='Atalho', bd=2, bg=self.edit_btn_color)
@@ -496,6 +496,16 @@ class Application(Funcs):
         self.subtype_cmd = 'write'
         self.add_cmd_label = 'Escrever'
         self.entry_limit = 25
+        self.open_add_cmds()
+    def keyboard_hold(self):
+        self.subtype_cmd = 'hold'
+        self.add_cmd_label = 'Segurar'
+        self.entry_limit = 1
+        self.open_add_cmds()
+    def keyboard_helease(self):
+        self.subtype_cmd = 'helease'
+        self.add_cmd_label = 'Soltar'
+        self.entry_limit = 1
         self.open_add_cmds()
     def open_add_cmds(self):
         self.clean_open_keyboard_cmds()
