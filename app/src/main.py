@@ -37,6 +37,15 @@ class Funcs():
             order_to_update = order_to_update + 1
         self.conn.commit()
         self.disconnect_database()
+    def update_all_cmd_order(self):
+        self.connect_database()
+        ids = self.cursor.execute(f"SELECT id FROM comando WHERE automacao_id='{self.aut_id_selected}' ORDER BY cmdOrder ASC").fetchall()
+        order_to_update = 1
+        for id in ids:
+            self.cursor.execute(f"UPDATE comando SET cmdOrder = '{order_to_update}' WHERE id = '{id[0]}'")
+            order_to_update = order_to_update + 1
+        self.conn.commit()
+        self.disconnect_database()
     def delete_command(self):
         self.update_cmd_order()
         self.connect_database()
@@ -189,8 +198,22 @@ class Funcs():
         elif input_len > self.entry_limit:
             messagebox.showwarning(title='Atenção!', message='Número de characters é maior que o permitido.')
         else:
-            # adicionar lógica de salvar novo comando -> importante a order
-            print('salvar')
+            cmdOrder = 0
+            print('self.add_cmd_dir: ',self.add_cmd_dir)
+            if self.add_cmd_dir == 'above':
+                cmdOrder = self.cmd_order_selected - 1
+            else:
+                cmdOrder = self.cmd_order_selected + 1
+            self.connect_database()
+            insert_query = f"INSERT INTO comando (automacao_id, type, subtype, command, cmdOrder) VALUES ({self.aut_id_selected}, 'keyboard', '{self.subtype_cmd}', '{self.edit_input.get()}', {cmdOrder})"
+            self.cursor.execute(insert_query)
+            self.conn.commit()
+            self.disconnect_database()
+            self.update_all_cmd_order()
+            self.root_add_cmd.destroy()
+            self.command_selected = ''
+            self.cmd_seleted.config(text=self.command_selected)
+            self.update_edit_tree()
     def temp_check_tables(self):
         self.connect_database()
         las_aut_id = self.cursor.execute('SELECT MAX(id) FROM automacao').fetchone()[0]
@@ -203,7 +226,7 @@ class Application(Funcs):
         self.config_constants()
         # self.temp_check_tables()
         self.error_txt = 'Ocorreu um erro'
-        self.confirm_cmd_del = False
+        self.conf9irm_cmd_del = False
         self.commands = []
         self.new_aut_id = 0
         self.root = root
@@ -371,7 +394,7 @@ class Application(Funcs):
 
         self.add_below_lbl = Label(self.edit_frame, text='Adicionar comando abaixo', bg=self.frame_bg_color, font=('Arial', 13))
         self.add_below_lbl.place(relx=0.62, rely=0.8, relwidth=0.36, relheight=0.09)
-        self.add_below_btn = Button(self.edit_frame, text='+', command=self.add_command_widgets, bd=2, bg=self.edit_btn_color)
+        self.add_below_btn = Button(self.edit_frame, text='+', command=self.set_add_cmd_below, bd=2, bg=self.edit_btn_color)
         self.add_below_btn.place(relx=0.62, rely=0.77, relwidth=0.36, relheight=0.05)
     def confirm_del_cmd(self):
         if self.command_selected == '':
@@ -411,8 +434,16 @@ class Application(Funcs):
             self.error_txt = 'Nenhum comando selecionado'
             self.error_modal_screen()
         else:
-            # buscar as informações do comando selecionado
-            # abrir novo modal menor de adição. Melhor do que ficar destroindo e criando mil componentes
+            self.add_cmd_dir = 'above'
+            self.add_cmd()
+    def set_add_cmd_below(self):
+        if self.command_selected == '':
+            self.error_txt = 'Nenhum comando selecionado'
+            self.error_modal_screen()
+        else:
+            self.add_cmd_dir = 'below'
+            self.add_cmd()
+    def add_cmd(self):
             self.root_add_cmd = Toplevel()
             self.root_add_cmd.configure(background=self.root_bg_color)
             self.root_add_cmd.geometry("700x500")
@@ -455,6 +486,7 @@ class Application(Funcs):
         self.btn_key_up.destroy()
         self.btn_hotkey.destroy()
     def keyboard_press(self):
+        self.subtype_cmd = 'press'
         self.clean_open_keyboard_cmds()
         self.press_label = Label(self.add_cmd_frame, text='Pressionar', bg=self.frame_bg_color, font=('Arial', 15))
         self.press_label.place(relx=0, rely=0, relwidth=1, relheight=0.2)
