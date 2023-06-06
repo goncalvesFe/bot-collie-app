@@ -488,16 +488,12 @@ class Application(Funcs):
 
         self.btn_key_up= Button(self.add_cmd_frame, text='Soltar', command=self.keyboard_helease, bd=2, bg=self.edit_btn_color)
         self.btn_key_up.place(relx=0.5834, rely=0.4, relwidth=0.25, relheight=0.1)
-
-        self.btn_hotkey = Button(self.add_cmd_frame, text='Atalho', command=self.keyboard_hotkey, bd=2, bg=self.edit_btn_color)
-        self.btn_hotkey.place(relx=0.375, rely=0.55, relwidth=0.25, relheight=0.1)
     def clean_open_keyboard_cmds(self):
         self.add_cmd_keyboard_title.destroy()
         self.btn_press.destroy()
         self.btn_write.destroy()
         self.btn_hold.destroy()
         self.btn_key_up.destroy()
-        self.btn_hotkey.destroy()
     def keyboard_press(self):
         self.subtype_cmd = 'press'
         self.add_cmd_label = 'Pressionar'
@@ -518,11 +514,6 @@ class Application(Funcs):
         self.add_cmd_label = 'Soltar'
         self.entry_limit = 1
         self.open_add_cmds()
-    def keyboard_hotkey(self):
-        self.subtype_cmd = 'hotkey'
-        self.add_cmd_label = 'Atalho'
-        self.entry_limit = 1
-        self.open_add_hotkey_cmds()
     def open_add_cmds(self):
         self.clean_open_keyboard_cmds()
         self.press_label = Label(self.add_cmd_frame, text=self.add_cmd_label, bg=self.frame_bg_color, font=('Arial', 15))
@@ -567,18 +558,6 @@ class Application(Funcs):
 
         self.btn_save = Button(self.add_cmd_frame, text='Salvar', command=self.save_special_char_cmd, bd=2, bg=self.edit_btn_color)
         self.btn_save.place(relx=0.375, rely=0.88, relwidth=0.25, relheight=0.1)
-    def open_add_hotkey_cmds(self):
-        self.clean_open_keyboard_cmds()
-        self.press_label = Label(self.add_cmd_frame, text=self.add_cmd_label, bg=self.frame_bg_color, font=('Arial', 15))
-        self.press_label.place(relx=0, rely=0, relwidth=1, relheight=0.2)
-        self.edit_input = Entry(self.add_cmd_frame, bg=self.edit_btn_color)
-        self.edit_input.place(relx=0.375, rely=0.2, relwidth=0.25, relheight=0.1)
-        self.edit_input2 = Entry(self.add_cmd_frame, bg=self.edit_btn_color)
-        self.edit_input2.place(relx=0.375, rely=0.3, relwidth=0.25, relheight=0.1)
-        self.btn_save = Button(self.add_cmd_frame, text='Adicionar', bd=2, bg=self.edit_btn_color)
-        self.btn_save.place(relx=0.375, rely=0.4, relwidth=0.25, relheight=0.1)
-        self.btn_save = Button(self.add_cmd_frame, text='Salvar', bd=2, bg=self.edit_btn_color)
-        self.btn_save.place(relx=0.375, rely=0.6, relwidth=0.25, relheight=0.1)
     def add_command_widgets(self):
         if self.command_selected == '':
             self.error_txt = 'Nenhum comando selecionado'
