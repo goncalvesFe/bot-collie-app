@@ -5,6 +5,8 @@ from tkinter import ttk, messagebox
 import pyautogui
 from pynput import keyboard, mouse
 
+from pyautogui_special_opts import special_opts
+
 pyautogui.PAUSE = 1
 root = Tk()
 
@@ -194,6 +196,12 @@ class Funcs():
                             else:
                                 pyautogui.hscroll(-10, x=pos_x, y=pos_y)
             self.disconnect_database()
+    def save_special_char_cmd(self):
+        if self.special_selected == '':
+            messagebox.showerror(title='Erro', message='Nenhuma seleção')
+        else:
+            self.new_cmd = f'key.{self.special_selected}'
+            self.insert_new_cmd()
     def save_keyboard_cmd(self):
         input_len = len(self.edit_input.get())
         if input_len == 0:
@@ -201,21 +209,24 @@ class Funcs():
         elif input_len > self.entry_limit:
             messagebox.showwarning(title='Atenção!', message='Número de characters é maior que o permitido.')
         else:
-            cmdOrder = 0
-            if self.add_cmd_dir == 'above':
-                cmdOrder = self.cmd_order_selected - 1
-            else:
-                cmdOrder = self.cmd_order_selected + 1
-            self.connect_database()
-            insert_query = f"INSERT INTO comando (automacao_id, type, subtype, command, cmdOrder) VALUES ({self.aut_id_selected}, 'keyboard', '{self.subtype_cmd}', '{self.edit_input.get()}', {cmdOrder})"
-            self.cursor.execute(insert_query)
-            self.conn.commit()
-            self.disconnect_database()
-            self.update_all_cmd_order()
-            self.root_add_cmd.destroy()
-            self.command_selected = ''
-            self.cmd_seleted.config(text=self.command_selected)
-            self.update_edit_tree()
+            self.new_cmd = self.edit_input.get()
+            self.insert_new_cmd()
+    def insert_new_cmd(self):
+        cmdOrder = 0
+        if self.add_cmd_dir == 'above':
+            cmdOrder = self.cmd_order_selected - 1
+        else:
+            cmdOrder = self.cmd_order_selected + 1
+        self.connect_database()
+        insert_query = f"INSERT INTO comando (automacao_id, type, subtype, command, cmdOrder) VALUES ({self.aut_id_selected}, 'keyboard', '{self.subtype_cmd}', '{self.new_cmd}', {cmdOrder})"
+        self.cursor.execute(insert_query)
+        self.conn.commit()
+        self.disconnect_database()
+        self.update_all_cmd_order()
+        self.root_add_cmd.destroy()
+        self.command_selected = ''
+        self.cmd_seleted.config(text=self.command_selected)
+        self.update_edit_tree()
     def temp_check_tables(self):
         self.connect_database()
         las_aut_id = self.cursor.execute('SELECT MAX(id) FROM automacao').fetchone()[0]
@@ -379,7 +390,7 @@ class Application(Funcs):
         self.tree_command.bind('<<TreeviewSelect>>', get_cmd_selected)
 
         self.ed_scroll = Scrollbar(self.edit_frame, orient='vertical')
-        self.tree_command.configure(yscroll=self.scroll)
+        self.tree_command.configure(yscroll=self.ed_scroll)
         self.ed_scroll.place(relx=0.57, rely=0, relwidth=0.02, relheight=1)
 
         self.add_above_lbl = Label(self.edit_frame, text='Adicionar comando acima', bg=self.frame_bg_color, font=('Arial', 13))
@@ -515,11 +526,47 @@ class Application(Funcs):
     def open_add_cmds(self):
         self.clean_open_keyboard_cmds()
         self.press_label = Label(self.add_cmd_frame, text=self.add_cmd_label, bg=self.frame_bg_color, font=('Arial', 15))
-        self.press_label.place(relx=0, rely=0, relwidth=1, relheight=0.2)
+        self.press_label.place(relx=0, rely=0, relwidth=1, relheight=0.15)
+        if self.entry_limit == 1:
+            self.character_btn = Button(self.add_cmd_frame, text='Character', command=self.show_character, bd=2, bg=self.edit_btn_color)
+            self.character_btn.place(relx=0.1667, rely=0.2, relwidth=0.25, relheight=0.1)
+            self.special_btn = Button(self.add_cmd_frame, text='Especial', command=self.show_special_opts, bd=2, bg=self.edit_btn_color)
+            self.special_btn.place(relx=0.5834, rely=0.2, relwidth=0.25, relheight=0.1)
+        else:
+            self.show_character()
+    def clean_opt_btns(self):
+        self.character_btn.destroy()
+        self.special_btn.destroy()
+    def show_character(self):
+        self.clean_opt_btns()
         self.edit_input = Entry(self.add_cmd_frame, bg=self.edit_btn_color)
         self.edit_input.place(relx=0.375, rely=0.2, relwidth=0.25, relheight=0.1)
         self.btn_save = Button(self.add_cmd_frame, text='Salvar', command=self.save_keyboard_cmd, bd=2, bg=self.edit_btn_color)
         self.btn_save.place(relx=0.375, rely=0.35, relwidth=0.25, relheight=0.1)
+    def show_special_opts(self):
+        self.clean_opt_btns()
+        self.tree_special_opts = ttk.Treeview(self.add_cmd_frame, height=3, column=('col1'), show='headings')
+        for opt in special_opts:
+            self.tree_special_opts.insert("", END, values=opt)
+        self.tree_special_opts.heading('#0', text='')
+        self.tree_special_opts.heading('#1', text='opções')
+        self.tree_special_opts.column('#0', width=1)
+        self.tree_special_opts.column('#1', width=500)
+        self.tree_special_opts.place(relx=0.375, rely=0.15, relwidth=0.25, relheight=0.7)
+
+        self.special_selected = ''
+        def get_opt_selected(event):
+            for opt_item in self.tree_special_opts.selection():
+                item = self.tree_special_opts.item(opt_item)
+                self.special_selected = item['values'][0]
+        self.tree_special_opts.bind('<<TreeviewSelect>>', get_opt_selected)
+
+        self.opt_scroll = Scrollbar(self.add_cmd_frame, orient='vertical')
+        self.tree_special_opts.configure(yscroll=self.opt_scroll)
+        self.opt_scroll.place(relx=0.625, rely=0.15, relwidth=0.02, relheight=0.7)
+
+        self.btn_save = Button(self.add_cmd_frame, text='Salvar', command=self.save_special_char_cmd, bd=2, bg=self.edit_btn_color)
+        self.btn_save.place(relx=0.375, rely=0.88, relwidth=0.25, relheight=0.1)
     def open_add_hotkey_cmds(self):
         self.clean_open_keyboard_cmds()
         self.press_label = Label(self.add_cmd_frame, text=self.add_cmd_label, bg=self.frame_bg_color, font=('Arial', 15))
