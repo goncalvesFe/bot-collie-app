@@ -208,7 +208,7 @@ class Funcs():
         if self.special_selected == '':
             messagebox.showerror(title='Erro', message='Nenhuma seleção')
         else:
-            self.new_cmd = f'key.{self.special_selected}'
+            self.new_cmd = f'Key.{self.special_selected}'
             self.insert_new_cmd()
     def save_keyboard_cmd(self):
         input_len = len(self.edit_input.get())
