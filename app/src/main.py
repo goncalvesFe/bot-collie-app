@@ -505,22 +505,18 @@ class Application(Funcs):
         self.btn_hold.destroy()
         self.btn_key_up.destroy()
     def keyboard_press(self):
-        # self.subtype_cmd = 'press'
         self.subtype_cmd = 'Pressionar'
         self.entry_limit = 1
         self.open_add_cmds()
     def keyboard_write(self):
-        # self.subtype_cmd = 'write'
         self.subtype_cmd = 'Escrever'
         self.entry_limit = 250
         self.open_add_cmds()
     def keyboard_hold(self):
-        # self.subtype_cmd = 'hold'
         self.subtype_cmd = 'Segurar'
         self.entry_limit = 1
         self.open_add_cmds()
     def keyboard_release(self):
-        # self.subtype_cmd = 'release'
         self.subtype_cmd = 'Soltar'
         self.entry_limit = 1
         self.open_add_cmds()
