@@ -149,13 +149,21 @@ class Funcs():
         # self.mouse_listener.start()
         # não esquecer de descomentar a linha 106
     def run_automation(self):
+        def check_cmd(command):
+            if len(command.split('.')) == 1:
+                return command
+            else:
+                special_command = command.split('.')[1]
+                if special_command == 'cmd':
+                    special_command = 'win'
+                return special_command
         if self.aut_name_selected == '':
             self.error_txt = 'Nenhuma automação selecionada'
             self.error_modal_screen()
         else:
             self.connect_database()
             aut_id = self.cursor.execute(f"SELECT id FROM automacao WHERE name='{self.aut_name_selected}'").fetchone()[0]
-            commands = self.cursor.execute(f"SELECT * FROM comando WHERE automacao_id='{aut_id}'").fetchall()
+            commands = self.cursor.execute(f"SELECT * FROM comando WHERE automacao_id='{aut_id}' ORDER BY cmdOrder ASC").fetchall()
             pyautogui.hotkey('win', 'd')
             for command in commands:
                 type = command[2]
@@ -164,13 +172,13 @@ class Funcs():
                 cmd_str_split = cmd.split('-')
                 if type == 'keyboard':
                     if subtype == 'press':
-                        if len(cmd.split('.')) == 1:
-                            pyautogui.press(cmd)
-                        else:
-                            special_cmd = cmd.split('.')[1]
-                            if special_cmd == 'cmd':
-                                special_cmd = 'win'
-                            pyautogui.press(special_cmd)
+                        pyautogui.press(check_cmd(cmd))
+                    elif subtype == 'write':
+                        pyautogui.write(cmd)
+                    elif subtype == 'hold':
+                        pyautogui.keyDown(check_cmd(cmd))
+                    elif subtype == 'release':
+                        pyautogui.keyUp(check_cmd(cmd))
                 else:
                     mouse_parameters = cmd_str_split[1].split(',')
                     print('mouse_parameters: ', mouse_parameters)
@@ -294,9 +302,9 @@ class Application(Funcs):
     def widget_confirm_cmd_del(self):
         self.del_cmd_msg = Label(self.error_modal_frame, text='Deseja excluir o comando?', bg=self.frame_bg_color, font=('Arial', 14))
         self.del_cmd_msg.place(relx=0, rely=0.1, relwidth=1, relheight=0.3)
-        self.Ndel_cmd_confirm_btn = Button(self.error_modal_frame, text='Cancelar', command=self.reset_confirm_cmd_del, bd=2, bg='#c93045', fg='white')
+        self.Ndel_cmd_confirm_btn = Button(self.error_modal_frame, text='Cancelar', command=self.reset_confirm_cmd_del, bd=2, bg='#00A86B', fg='white')
         self.Ndel_cmd_confirm_btn.place(relx= 0.15, rely=0.5, relwidth=0.3, relheight=0.15)
-        self.del_cmd_confirm_btn = Button(self.error_modal_frame, text='Excluir', command=self.delete_command, bd=2, bg='#00A86B', fg='white')
+        self.del_cmd_confirm_btn = Button(self.error_modal_frame, text='Excluir', command=self.delete_command, bd=2, bg='#c93045', fg='white')
         self.del_cmd_confirm_btn.place(relx= 0.55, rely=0.5, relwidth=0.3, relheight=0.15)
     def widget_error_modal(self):
         self.error_msg = Label(self.error_modal_frame, text=self.error_txt, bg=self.frame_bg_color, font=('Arial', 14))
@@ -486,7 +494,7 @@ class Application(Funcs):
         self.btn_hold = Button(self.add_cmd_frame, text='Segurar', command=self.keyboard_hold, bd=2, bg=self.edit_btn_color)
         self.btn_hold.place(relx=0.1667, rely=0.4, relwidth=0.25, relheight=0.1)
 
-        self.btn_key_up= Button(self.add_cmd_frame, text='Soltar', command=self.keyboard_helease, bd=2, bg=self.edit_btn_color)
+        self.btn_key_up= Button(self.add_cmd_frame, text='Soltar', command=self.keyboard_release, bd=2, bg=self.edit_btn_color)
         self.btn_key_up.place(relx=0.5834, rely=0.4, relwidth=0.25, relheight=0.1)
     def clean_open_keyboard_cmds(self):
         self.add_cmd_keyboard_title.destroy()
@@ -502,15 +510,15 @@ class Application(Funcs):
     def keyboard_write(self):
         self.subtype_cmd = 'write'
         self.add_cmd_label = 'Escrever'
-        self.entry_limit = 25
+        self.entry_limit = 250
         self.open_add_cmds()
     def keyboard_hold(self):
         self.subtype_cmd = 'hold'
         self.add_cmd_label = 'Segurar'
         self.entry_limit = 1
         self.open_add_cmds()
-    def keyboard_helease(self):
-        self.subtype_cmd = 'helease'
+    def keyboard_release(self):
+        self.subtype_cmd = 'release'
         self.add_cmd_label = 'Soltar'
         self.entry_limit = 1
         self.open_add_cmds()
@@ -524,12 +532,17 @@ class Application(Funcs):
             self.special_btn = Button(self.add_cmd_frame, text='Especial', command=self.show_special_opts, bd=2, bg=self.edit_btn_color)
             self.special_btn.place(relx=0.5834, rely=0.2, relwidth=0.25, relheight=0.1)
         else:
-            self.show_character()
+            self.open_edit_entry()
     def clean_opt_btns(self):
         self.character_btn.destroy()
         self.special_btn.destroy()
     def show_character(self):
         self.clean_opt_btns()
+        self.edit_input = Entry(self.add_cmd_frame, bg=self.edit_btn_color)
+        self.edit_input.place(relx=0.375, rely=0.2, relwidth=0.25, relheight=0.1)
+        self.btn_save = Button(self.add_cmd_frame, text='Salvar', command=self.save_keyboard_cmd, bd=2, bg=self.edit_btn_color)
+        self.btn_save.place(relx=0.375, rely=0.35, relwidth=0.25, relheight=0.1)
+    def open_edit_entry(self):
         self.edit_input = Entry(self.add_cmd_frame, bg=self.edit_btn_color)
         self.edit_input.place(relx=0.375, rely=0.2, relwidth=0.25, relheight=0.1)
         self.btn_save = Button(self.add_cmd_frame, text='Salvar', command=self.save_keyboard_cmd, bd=2, bg=self.edit_btn_color)
