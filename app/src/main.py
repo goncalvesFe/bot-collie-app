@@ -99,7 +99,7 @@ class Funcs():
     def update_edit_tree(self):
         self.tree_command.delete(*self.tree_command.get_children())
         self.connect_database()
-        list = self.cursor.execute(f"SELECT id, cmdOrder, command FROM comando WHERE automacao_id = '{self.aut_id_selected}' ORDER BY cmdOrder ASC")
+        list = self.cursor.execute(f"SELECT id, cmdOrder, subtype, command FROM comando WHERE automacao_id = '{self.aut_id_selected}' ORDER BY cmdOrder ASC")
         for i in list:
             self.tree_command.insert("", END, values=i)
         self.disconnect_database()
@@ -108,7 +108,7 @@ class Funcs():
         # commands = [['type', 'subtype', 'cmd'], ['type', 'subtype', 'cmd'], ...]
         pyautogui.hotkey('win', 'd')
         def on_press(key):
-            self.commands.append(['keyboard', 'press', key])
+            self.commands.append(['keyboard', 'Pressionar', key])
             try:
                 print('alphanumeric key {0} pressed'.format(key.char))
             except AttributeError:
@@ -171,13 +171,13 @@ class Funcs():
                 cmd = command[4]
                 cmd_str_split = cmd.split('-')
                 if type == 'keyboard':
-                    if subtype == 'press':
+                    if subtype == 'Pressionar':
                         pyautogui.press(check_cmd(cmd))
-                    elif subtype == 'write':
+                    elif subtype == 'Escrever':
                         pyautogui.write(cmd)
-                    elif subtype == 'hold':
+                    elif subtype == 'Segurar':
                         pyautogui.keyDown(check_cmd(cmd))
-                    elif subtype == 'release':
+                    elif subtype == 'Soltar':
                         pyautogui.keyUp(check_cmd(cmd))
                 else:
                     mouse_parameters = cmd_str_split[1].split(',')
@@ -374,15 +374,17 @@ class Application(Funcs):
         self.btn_del_aut = Button(self.frame_2, text='Excluir automação', command=self.delete_aut_confirmation, bd=2, bg='#c93045', fg='white')
         self.btn_del_aut.place(relx=0.62, rely=0.55, relwidth=0.36, relheight=0.09)
     def edit_widget_frame(self):
-        self.tree_command = ttk.Treeview(self.edit_frame, height=3, column=('col1', 'col2', 'col3'), show='headings')
+        self.tree_command = ttk.Treeview(self.edit_frame, height=3, column=('col1', 'col2', 'col3', 'col4'), show='headings')
         self.tree_command.heading('#0', text='')
         self.tree_command.heading('#1', text='ID')
         self.tree_command.heading('#2', text='Ordem')
-        self.tree_command.heading('#3', text='Comando')
+        self.tree_command.heading('#3', text='Tipo')
+        self.tree_command.heading('#4', text='Comando')
         self.tree_command.column('#0', width=1)
         self.tree_command.column('#1', width=50)
-        self.tree_command.column('#2', width=200)
-        self.tree_command.column('#3', width=250)
+        self.tree_command.column('#2', width=100)
+        self.tree_command.column('#3', width=100)
+        self.tree_command.column('#4', width=250)
         self.tree_command.place(relx=0, rely=0, relwidth=0.57, relheight=1)
 
         self.command_selected = ''
@@ -446,9 +448,9 @@ class Application(Funcs):
             self.btn_add_aut.destroy()
             self.del_confirmation_msg = Label(self.frame_1, text='Deseja excluir a automação?', bg=self.frame_bg_color, font=('Arial', 13))
             self.del_confirmation_msg.place(relx=0.2, rely=0.1, relwidth=0.6, relheight=0.1)
-            self.del_cancel_btn = Button(self.frame_1, text='Cancelar', command=self.clean_del_confirm, bd=2, bg='#c93045', fg='white')
+            self.del_cancel_btn = Button(self.frame_1, text='Cancelar', command=self.clean_del_confirm, bd=2, bg='#00A86B', fg='white')
             self.del_cancel_btn.place(relx=0.25, rely=0.5, relwidth=0.23, relheight=0.30)
-            self.del_confirm_btn = Button(self.frame_1, text='Excluir', command=self.delete_automation, bd=2, bg='#00A86B', fg='white')
+            self.del_confirm_btn = Button(self.frame_1, text='Excluir', command=self.delete_automation, bd=2, bg='#c93045', fg='white')
             self.del_confirm_btn.place(relx=0.55, rely=0.5, relwidth=0.23, relheight=0.30)
     def set_add_cmd_above(self):
         if self.command_selected == '':
@@ -503,28 +505,28 @@ class Application(Funcs):
         self.btn_hold.destroy()
         self.btn_key_up.destroy()
     def keyboard_press(self):
-        self.subtype_cmd = 'press'
-        self.add_cmd_label = 'Pressionar'
+        # self.subtype_cmd = 'press'
+        self.subtype_cmd = 'Pressionar'
         self.entry_limit = 1
         self.open_add_cmds()
     def keyboard_write(self):
-        self.subtype_cmd = 'write'
-        self.add_cmd_label = 'Escrever'
+        # self.subtype_cmd = 'write'
+        self.subtype_cmd = 'Escrever'
         self.entry_limit = 250
         self.open_add_cmds()
     def keyboard_hold(self):
-        self.subtype_cmd = 'hold'
-        self.add_cmd_label = 'Segurar'
+        # self.subtype_cmd = 'hold'
+        self.subtype_cmd = 'Segurar'
         self.entry_limit = 1
         self.open_add_cmds()
     def keyboard_release(self):
-        self.subtype_cmd = 'release'
-        self.add_cmd_label = 'Soltar'
+        # self.subtype_cmd = 'release'
+        self.subtype_cmd = 'Soltar'
         self.entry_limit = 1
         self.open_add_cmds()
     def open_add_cmds(self):
         self.clean_open_keyboard_cmds()
-        self.press_label = Label(self.add_cmd_frame, text=self.add_cmd_label, bg=self.frame_bg_color, font=('Arial', 15))
+        self.press_label = Label(self.add_cmd_frame, text=self.subtype_cmd, bg=self.frame_bg_color, font=('Arial', 15))
         self.press_label.place(relx=0, rely=0, relwidth=1, relheight=0.15)
         if self.entry_limit == 1:
             self.character_btn = Button(self.add_cmd_frame, text='Character', command=self.show_character, bd=2, bg=self.edit_btn_color)
