@@ -150,10 +150,11 @@ class Funcs():
         # não esquecer de descomentar a linha 106
     def run_automation(self):
         def check_cmd(command):
-            if len(command.split('.')) == 1:
+            cmd = command.split('.')
+            if len(cmd) == 1:
                 return command
             else:
-                special_command = command.split('.')[1]
+                special_command = cmd[1]
                 if special_command == 'cmd':
                     special_command = 'win'
                 return special_command
@@ -390,12 +391,14 @@ class Application(Funcs):
         self.command_selected = ''
         self.cmd_order_selected = 0
         self.cmd_id_selected = 0
+        self.cmd_subtype = ''
         def get_cmd_selected(event):
             for cmd_item in self.tree_command.selection():
                 item = self.tree_command.item(cmd_item)
                 self.cmd_id_selected = item['values'][0]
                 self.cmd_order_selected = item['values'][1]
-                self.command_selected = item['values'][2]
+                self.cmd_subtype = item['values'][2]
+                self.command_selected = item['values'][3]
                 self.cmd_seleted.config(text=self.command_selected)
         self.tree_command.bind('<<TreeviewSelect>>', get_cmd_selected)
 
@@ -410,7 +413,7 @@ class Application(Funcs):
 
         self.cmd_seleted = Label(self.edit_frame, text='Selecione o comando', bg=self.edit_btn_color, font=('Arial', 15))
         self.cmd_seleted.place(relx=0.62, rely=0.3, relwidth=0.36, relheight=0.09)
-        self.btn_edt_cmd = Button(self.edit_frame, text='Editar comando', command=self.add_command_widgets, bd=2, bg='#5a4aed', fg='white')
+        self.btn_edt_cmd = Button(self.edit_frame, text='Editar comando', command=self.edit_command, bd=2, bg='#5a4aed', fg='white')
         self.btn_edt_cmd.place(relx=0.62, rely=0.40, relwidth=0.36, relheight=0.07)
         self.btn_del_cmd = Button(self.edit_frame, text='Excluir comando', command=self.confirm_del_cmd, bd=2, bg='#c93045', fg='white')
         self.btn_del_cmd.place(relx=0.62, rely=0.50, relwidth=0.36, relheight=0.06)
@@ -452,19 +455,22 @@ class Application(Funcs):
             self.del_cancel_btn.place(relx=0.25, rely=0.5, relwidth=0.23, relheight=0.30)
             self.del_confirm_btn = Button(self.frame_1, text='Excluir', command=self.delete_automation, bd=2, bg='#c93045', fg='white')
             self.del_confirm_btn.place(relx=0.55, rely=0.5, relwidth=0.23, relheight=0.30)
+    def show_none_cmd_selected_err(self):
+        self.error_txt = 'Nenhum comando selecionado'
+        self.error_modal_screen()
     def set_add_cmd_above(self):
         if self.command_selected == '':
-            self.error_txt = 'Nenhum comando selecionado'
-            self.error_modal_screen()
+            self.show_none_cmd_selected_err()
         else:
             self.add_cmd_dir = 'above'
+            self.edit_cmd = False
             self.add_cmd()
     def set_add_cmd_below(self):
         if self.command_selected == '':
-            self.error_txt = 'Nenhum comando selecionado'
-            self.error_modal_screen()
+            self.show_none_cmd_selected_err()
         else:
             self.add_cmd_dir = 'below'
+            self.edit_cmd = False
             self.add_cmd()
     def add_cmd(self):
             self.root_add_cmd = Toplevel()
@@ -475,7 +481,7 @@ class Application(Funcs):
             self.root_add_cmd.minsize(width=400, height=300)
             self.add_cmd_frame = Frame(self.root_add_cmd, bd=4, bg=self.frame_bg_color, highlightbackground='white', highlightthickness=3)
             self.add_cmd_frame.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.96)
-            self.add_cmd_wiget_frame()
+            if  not self.edit_cmd: self.add_cmd_wiget_frame()
     def add_cmd_wiget_frame(self):
         self.btn_keyboard_opt = Button(self.add_cmd_frame, text='Comandos teclado', command=self.open_keyboard_cmds, bd=2, bg=self.edit_btn_color)
         self.btn_keyboard_opt.place(relx=0.05, rely=0.02, relwidth=0.4, relheight=0.1)
@@ -521,32 +527,43 @@ class Application(Funcs):
         self.entry_limit = 1
         self.open_add_cmds()
     def open_add_cmds(self):
-        self.clean_open_keyboard_cmds()
         self.press_label = Label(self.add_cmd_frame, text=self.subtype_cmd, bg=self.frame_bg_color, font=('Arial', 15))
         self.press_label.place(relx=0, rely=0, relwidth=1, relheight=0.15)
-        if self.entry_limit == 1:
-            self.character_btn = Button(self.add_cmd_frame, text='Character', command=self.show_character, bd=2, bg=self.edit_btn_color)
-            self.character_btn.place(relx=0.1667, rely=0.2, relwidth=0.25, relheight=0.1)
-            self.special_btn = Button(self.add_cmd_frame, text='Especial', command=self.show_special_opts, bd=2, bg=self.edit_btn_color)
-            self.special_btn.place(relx=0.5834, rely=0.2, relwidth=0.25, relheight=0.1)
+        if self.edit_cmd:
+            if self.entry_limit == 1:
+                if len(self.command_selected.split('.')) == 1:
+                    self.show_character()
+                else:
+                    self.show_special_opts()
+            else:
+                self.open_edit_entry()
         else:
-            self.open_edit_entry()
+            self.clean_open_keyboard_cmds()
+            if self.entry_limit == 1:
+                self.character_btn = Button(self.add_cmd_frame, text='Character', command=self.show_character, bd=2, bg=self.edit_btn_color)
+                self.character_btn.place(relx=0.1667, rely=0.2, relwidth=0.25, relheight=0.1)
+                self.special_btn = Button(self.add_cmd_frame, text='Especial', command=self.show_special_opts, bd=2, bg=self.edit_btn_color)
+                self.special_btn.place(relx=0.5834, rely=0.2, relwidth=0.25, relheight=0.1)
+            else:
+                self.open_edit_entry()
     def clean_opt_btns(self):
         self.character_btn.destroy()
         self.special_btn.destroy()
     def show_character(self):
-        self.clean_opt_btns()
+        if not self.edit_cmd: self.clean_opt_btns()
         self.edit_input = Entry(self.add_cmd_frame, bg=self.edit_btn_color)
+        if self.edit_cmd: self.edit_input.insert(0, self.command_selected)
         self.edit_input.place(relx=0.375, rely=0.2, relwidth=0.25, relheight=0.1)
         self.btn_save = Button(self.add_cmd_frame, text='Salvar', command=self.save_keyboard_cmd, bd=2, bg=self.edit_btn_color)
         self.btn_save.place(relx=0.375, rely=0.35, relwidth=0.25, relheight=0.1)
     def open_edit_entry(self):
         self.edit_input = Entry(self.add_cmd_frame, bg=self.edit_btn_color)
+        if self.edit_cmd: self.edit_input.insert(0, self.command_selected)
         self.edit_input.place(relx=0.375, rely=0.2, relwidth=0.25, relheight=0.1)
         self.btn_save = Button(self.add_cmd_frame, text='Salvar', command=self.save_keyboard_cmd, bd=2, bg=self.edit_btn_color)
         self.btn_save.place(relx=0.375, rely=0.35, relwidth=0.25, relheight=0.1)
     def show_special_opts(self):
-        self.clean_opt_btns()
+        if not self.edit_cmd: self.clean_opt_btns()
         self.tree_special_opts = ttk.Treeview(self.add_cmd_frame, height=3, column=('col1'), show='headings')
         for opt in special_opts:
             self.tree_special_opts.insert("", END, values=opt)
@@ -569,25 +586,27 @@ class Application(Funcs):
 
         self.btn_save = Button(self.add_cmd_frame, text='Salvar', command=self.save_special_char_cmd, bd=2, bg=self.edit_btn_color)
         self.btn_save.place(relx=0.375, rely=0.88, relwidth=0.25, relheight=0.1)
-    def add_command_widgets(self):
+    def edit_command(self):
         if self.command_selected == '':
-            self.error_txt = 'Nenhum comando selecionado'
-            self.error_modal_screen()
+            self.show_none_cmd_selected_err()
         else:
-            self.tree_command.destroy()
-            self.ed_scroll.destroy()
-            self.add_above_lbl.destroy()
-            self.add_above_btn.destroy()
-            self.cmd_seleted.destroy()
-            self.btn_edt_cmd.destroy()
-            self.btn_del_cmd.destroy()
-            self.add_below_lbl.destroy()
-            self.add_below_btn.destroy()
-
-            self.btn_keyboard_opt = Button(self.edit_frame, text='Comandos teclado', bd=2, bg=self.edit_btn_color)
-            self.btn_keyboard_opt.place(relx=0.05, rely=0.02, relwidth=0.4, relheight=0.07)
-            self.btn_mouse_opt = Button(self.edit_frame, text='Comandos mouse', bd=2, bg=self.edit_btn_color)
-            self.btn_mouse_opt.place(relx=0.55, rely=0.02, relwidth=0.4, relheight=0.07)
+            self.edit_cmd = True
+            print('--- EDITAR COMANDO ---')
+            print('self.cmd_id_selected: ', self.cmd_id_selected)
+            print('self.cmd_order_selected: ', self.cmd_order_selected)
+            print('self.cmd_subtype: ', self.cmd_subtype)
+            print('self.command_selected: ', self.command_selected)
+            self.add_cmd()
+            # verificar depois se é teclado ou mouse
+            # teclado
+            if self.cmd_subtype == 'Pressionar':
+                self.keyboard_press()
+            elif self.cmd_subtype == 'Escrever':
+                self.keyboard_write()
+            elif self.cmd_subtype == 'Segurar':
+                self.keyboard_hold()
+            elif self.cmd_subtype == 'Soltar':
+                self.keyboard_release()
 
 
 Application()
