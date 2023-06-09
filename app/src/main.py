@@ -58,6 +58,7 @@ class Funcs():
         self.conn.commit()
         self.disconnect_database()
         self.update_edit_tree()
+        self.cmd_seleted.config(text='')
         self.reset_confirm_cmd_del()
     def save_commands(self):
         self.connect_database
@@ -392,10 +393,10 @@ class Application(Funcs):
         self.tree_command.heading('#3', text='Tipo')
         self.tree_command.heading('#4', text='Comando')
         self.tree_command.column('#0', width=1)
-        self.tree_command.column('#1', width=50)
-        self.tree_command.column('#2', width=100)
+        self.tree_command.column('#1', width=30)
+        self.tree_command.column('#2', width=70)
         self.tree_command.column('#3', width=100)
-        self.tree_command.column('#4', width=250)
+        self.tree_command.column('#4', width=300)
         self.tree_command.place(relx=0, rely=0, relwidth=0.57, relheight=1)
 
         self.command_selected = ''
