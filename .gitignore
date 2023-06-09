@@ -1,2 +1,3 @@
 app/bot-collie.db
 app/lib
+app/src/__pycache__
