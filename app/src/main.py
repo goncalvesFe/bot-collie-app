@@ -219,7 +219,15 @@ class Funcs():
             messagebox.showwarning(title='Atenção!', message='Número de characters é maior que o permitido.')
         else:
             self.new_cmd = self.edit_input.get()
-            self.insert_new_cmd()
+            if self.edit_cmd: self.update_cmd() 
+            else: self.insert_new_cmd()
+    def update_cmd(self):
+        self.connect_database()
+        self.cursor.execute(f"UPDATE comando SET command = '{self.new_cmd}' WHERE id = '{self.cmd_id_selected}'")
+        self.conn.commit()
+        self.disconnect_database()
+        self.edit_cmd = False
+        self.reload_cmd_wiget()
     def insert_new_cmd(self):
         cmdOrder = 0
         if self.add_cmd_dir == 'above':
@@ -232,6 +240,8 @@ class Funcs():
         self.conn.commit()
         self.disconnect_database()
         self.update_all_cmd_order()
+        self.reload_cmd_wiget()
+    def reload_cmd_wiget(self):
         self.root_add_cmd.destroy()
         self.command_selected = ''
         self.cmd_seleted.config(text=self.command_selected)
@@ -607,6 +617,5 @@ class Application(Funcs):
                 self.keyboard_hold()
             elif self.cmd_subtype == 'Soltar':
                 self.keyboard_release()
-
 
 Application()
