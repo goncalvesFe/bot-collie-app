@@ -81,8 +81,7 @@ class Funcs():
         aut_id = 1
         self.connect_database()
         las_aut_id = self.cursor.execute('SELECT MAX(id) FROM automacao').fetchone()[0]
-        if las_aut_id != None:
-            aut_id = aut_id + las_aut_id
+        if las_aut_id != None: aut_id = aut_id + las_aut_id
         aut_name = f'automacao-{aut_id}'
         self.cursor.execute(f"INSERT INTO automacao (name) VALUES ('{aut_name}')")
         self.conn.commit()
@@ -118,16 +117,18 @@ class Funcs():
             if key == keyboard.Key.esc:
                 self.save_automation()
                 # Stop listeners
-                # self.mouse_listener.stop()
+                self.mouse_listener.stop()
                 return False
         def on_move(x, y):
             # print('Pointer moved to {0}'.format((x, y)))
             pass
         def on_click(x, y, button, pressed):
+            btn = 'Esquerdo' if button.name == 'left' else 'Direito'
             if pressed:
-                mouse_click = f'click-x:{x},y:{y},button:{button}'
+                # command: ‘x,y,button,num’ 
+                mouse_click = f'{x},{y},{btn},1'
                 print(mouse_click)
-                self.commands.append(mouse_click)
+                self.commands.append(['mouse', 'click', mouse_click])
         def on_scroll(x, y, dx, dy):
             if dx == 0:
                 hscroll = dx
@@ -141,14 +142,14 @@ class Funcs():
                 vscroll = 'down'
             elif dy == 1:
                 vscroll = 'up'
-            mouse_scroll = f'scroll-x:{x},y:{y},dx:{hscroll},dy:{vscroll}'
+            # command: ‘x,y,dx,dy’
+            mouse_scroll = f'{x},{y},{hscroll},{vscroll}'
             print(mouse_scroll)
-            self.commands.append(mouse_scroll)
+            self.commands.append(['mouse', 'scroll', mouse_scroll])
         self.keyboard_listener = keyboard.Listener(on_press=on_press, on_release=on_release)
         self.keyboard_listener.start()
-        # self.mouse_listener = mouse.Listener(on_move=on_move, on_click=on_click, on_scroll=on_scroll)
-        # self.mouse_listener.start()
-        # não esquecer de descomentar a linha 106
+        self.mouse_listener = mouse.Listener(on_move=on_move, on_click=on_click, on_scroll=on_scroll)
+        self.mouse_listener.start()
     def run_automation(self):
         def check_cmd(command):
             cmd = command.split('.')
@@ -171,7 +172,6 @@ class Funcs():
                 type = command[2]
                 subtype = command[3]
                 cmd = command[4]
-                cmd_str_split = cmd.split('-')
                 if type == 'keyboard':
                     if subtype == 'Pressionar':
                         pyautogui.press(check_cmd(cmd))
@@ -182,29 +182,18 @@ class Funcs():
                     elif subtype == 'Soltar':
                         pyautogui.keyUp(check_cmd(cmd))
                 else:
-                    mouse_parameters = cmd_str_split[1].split(',')
-                    print('mouse_parameters: ', mouse_parameters)
-                    pos_x = int(mouse_parameters[0].split(':')[1])
-                    pos_y = int(mouse_parameters[1].split(':')[1])
-                    if cmd_str_split[0] == 'click':
-                        btn_click = mouse_parameters[2].split(':')[1].split('.')[1]
-                        print(f'click : x={pos_x}, y={pos_y}, button={btn_click}, clicks=1')
-                        pyautogui.click(x=pos_x, y=pos_y, button=btn_click, clicks=1)
+                    cmd_str_split = cmd.split(',')
+                    x_pos = int(cmd_str_split[0])
+                    y_pos = int(cmd_str_split[1])
+                    if subtype == 'click':
+                        btn_click = 'left' if cmd_str_split[2] == 'Esquerdo' else 'right'
+                        click_number = int(cmd_str_split[3])
+                        pyautogui.click(x=x_pos, y=y_pos, button=btn_click, clicks=click_number)
                     else:
-                        dx = mouse_parameters[2].split(':')[1]
-                        dy = mouse_parameters[3].split(':')[1]
-                        print(f'scroll: x={pos_x}, y={pos_y}, dx={dx}, dy={dy}')
-                        if dx == '0':
-                            if dy == 'up':
-                                pyautogui.scroll(10, x=pos_x, y=pos_y)
-                            else:
-                                pyautogui.scroll(-10, x=pos_x, y=pos_y)
-                        else:
-                            # scroll horizontal
-                            if dx == 'right':
-                                pyautogui.hscroll(10, x=pos_x, y=pos_y)
-                            else:
-                                pyautogui.hscroll(-10, x=pos_x, y=pos_y)
+                        dx = cmd_str_split[2]
+                        dy = cmd_str_split[3]
+                        if dx == '0': pyautogui.scroll(10 if dy == 'up' else -10, x=x_pos, y=y_pos)
+                        else: pyautogui.hscroll(10 if dx == 'right' else -10, x=x_pos, y=y_pos)
             self.disconnect_database()
     def save_special_char_cmd(self):
         if self.special_selected == '':
