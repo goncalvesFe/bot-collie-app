@@ -218,14 +218,16 @@ class Funcs():
         self.disconnect_database()
         self.edit_cmd = False
         self.reload_cmd_wiget()
-    def insert_new_cmd(self):
-        cmdOrder = 0
+    def calculate_command_order(self):
+        self.cmdOrder = 0
         if self.add_cmd_dir == 'above':
-            cmdOrder = self.cmd_order_selected - 1
+            self.cmdOrder = self.cmd_order_selected - 1
         else:
-            cmdOrder = self.cmd_order_selected + 1
+            self.cmdOrder = self.cmd_order_selected + 1
+    def insert_new_cmd(self):
+        self.calculate_command_order()
         self.connect_database()
-        insert_query = f"INSERT INTO comando (automacao_id, type, subtype, command, cmdOrder) VALUES ({self.aut_id_selected}, 'keyboard', '{self.subtype_cmd}', '{self.new_cmd}', {cmdOrder})"
+        insert_query = f"INSERT INTO comando (automacao_id, type, subtype, command, cmdOrder) VALUES ({self.aut_id_selected}, 'keyboard', '{self.subtype_cmd}', '{self.new_cmd}', {self.cmdOrder})"
         self.cursor.execute(insert_query)
         self.conn.commit()
         self.disconnect_database()
@@ -236,6 +238,17 @@ class Funcs():
         self.command_selected = ''
         self.cmd_seleted.config(text=self.command_selected)
         self.update_edit_tree()
+    def save_new_mouse_click(self):
+        self.calculate_command_order()
+        print('salvar click do mouse')
+        num_click = 1 if self.num_clicked.get() == 'Simples' else 2
+        mouse_click_cmd = f'{self.xpos.get()},{self.ypos.get()},{self.choices_clicked.get()},{num_click}'
+        # self.connect_database()
+        insert_query = f"INSERT INTO comando (automacao_id, type, subtype, command, cmdOrder) VALUES ({self.aut_id_selected}, 'mouse', 'click', '{mouse_click_cmd}', {self.cmdOrder})"
+        print('insert_query: ', insert_query)
+        # self.cursor.execute(insert_query)
+        # self.conn.commit()
+        # self.disconnect_database()
     def temp_check_tables(self):
         self.connect_database()
         las_aut_id = self.cursor.execute('SELECT MAX(id) FROM automacao').fetchone()[0]
@@ -485,7 +498,7 @@ class Application(Funcs):
     def add_cmd_wiget_frame(self):
         self.btn_keyboard_opt = Button(self.add_cmd_frame, text='Comandos teclado', command=self.open_keyboard_cmds, bd=2, bg=self.edit_btn_color)
         self.btn_keyboard_opt.place(relx=0.05, rely=0.02, relwidth=0.4, relheight=0.1)
-        self.btn_mouse_opt = Button(self.add_cmd_frame, text='Comandos mouse', bd=2, bg=self.edit_btn_color)
+        self.btn_mouse_opt = Button(self.add_cmd_frame, text='Comandos mouse', command=self.open_mouse_cmds, bd=2, bg=self.edit_btn_color)
         self.btn_mouse_opt.place(relx=0.55, rely=0.02, relwidth=0.4, relheight=0.1)
     def open_keyboard_cmds(self):
         self.btn_keyboard_opt.destroy()
@@ -586,6 +599,79 @@ class Application(Funcs):
 
         self.btn_save = Button(self.add_cmd_frame, text='Salvar', command=self.save_special_char_cmd, bd=2, bg=self.edit_btn_color)
         self.btn_save.place(relx=0.375, rely=0.88, relwidth=0.25, relheight=0.1)
+    def open_mouse_cmds(self):
+        self.btn_keyboard_opt.destroy()
+        self.btn_mouse_opt.destroy()
+        self.add_cmd_mouse_title = Label(self.add_cmd_frame, text='Selecione o tipo de comando', bg=self.frame_bg_color, font=('Arial', 15))
+        self.add_cmd_mouse_title.place(relx=0, rely=0, relwidth=1, relheight=0.2)
+
+        self.lbl_mouse_pos = Label(self.add_cmd_frame, text='posição do mouse', bg=self.frame_bg_color, font=('Arial', 15))
+        self.lbl_mouse_pos.place(relx=0.25, rely=0.25, relwidth=0.25, relheight=0.1)
+        self.lbl_xpos = Label(self.add_cmd_frame, text='x:', bg=self.frame_bg_color, font=('Arial', 15))
+        self.lbl_xpos.place(relx=0.53, rely=0.25, relwidth=0.05, relheight=0.1)
+        self.xpos = Entry(self.add_cmd_frame, bg=self.edit_btn_color)
+        self.xpos.place(relx=0.58, rely=0.25, relwidth=0.1, relheight=0.1)
+        self.lbl_ypos = Label(self.add_cmd_frame, text='y:', bg=self.frame_bg_color, font=('Arial', 15))
+        self.lbl_ypos.place(relx=0.68, rely=0.25, relwidth=0.05, relheight=0.1)
+        self.ypos = Entry(self.add_cmd_frame, bg=self.edit_btn_color)
+        self.ypos.place(relx=0.73, rely=0.25, relwidth=0.1, relheight=0.1)
+
+        self.btn_click = Button(self.add_cmd_frame, text='click', command=self.open_click_mouse_opts, bd=2, bg=self.edit_btn_color)
+        self.btn_click.place(relx=0.25, rely=0.4, relwidth=0.25, relheight=0.1)
+
+        self.btn_scroll= Button(self.add_cmd_frame, text='scroll', command=self.open_scroll_mouse_opts, bd=2, bg=self.edit_btn_color)
+        self.btn_scroll.place(relx=0.55, rely=0.4, relwidth=0.25, relheight=0.1)
+    def clean_mouse_btn(self):
+        self.btn_click.destroy()
+        self.btn_scroll.destroy()
+    def open_click_mouse_opts(self):
+        self.clean_mouse_btn()
+        self.btn_choices_lbl = Label(self.add_cmd_frame, text='Botão', bg=self.frame_bg_color, font=('Arial', 15))
+        self.btn_choices_lbl.place(relx=0.2, rely=0.4, relwidth=0.17, relheight=0.1)
+        btn_opts = ['Esquerdo', 'Direito']
+        self.choices_clicked = StringVar()
+        self.choices_clicked.set('Esquerdo')
+        self.btn_choices = OptionMenu(self.add_cmd_frame, self.choices_clicked, *btn_opts)
+        self.btn_choices.place(relx=0.37, rely=0.4, relwidth=0.17, relheight=0.1)
+
+        self.num_clicks_lbl = Label(self.add_cmd_frame, text='Click', bg=self.frame_bg_color, font=('Arial', 15))
+        self.num_clicks_lbl.place(relx=0.2, rely=0.63, relwidth=0.17, relheight=0.1)
+        num_opts = ['Simples', 'Duplo']
+        self.num_clicked = StringVar()
+        self.num_clicked.set('Simples')
+        self.num_clicks = OptionMenu(self.add_cmd_frame, self.num_clicked, *num_opts)
+        self.num_clicks.place(relx=0.37, rely=0.63, relwidth=0.17, relheight=0.1)
+
+        self.save_new_mouse_cmd = Button(self.add_cmd_frame, text='Salvar', command=self.save_new_mouse_click, bd=2, bg=self.edit_btn_color)
+        self.save_new_mouse_cmd.place(relx=0.37, rely=0.85, relwidth=0.25, relheight=0.1)
+    def open_scroll_mouse_opts(self):
+        self.clean_mouse_btn()
+        self.scroll_opts = []
+        self.scroll_clicked = StringVar()
+        def set_vertical_scroll_opts():
+            self.scroll_opts.append('para cima')
+            self.scroll_opts.append('para baixo')
+            self.scroll_clicked.set('para cima')
+            self.show_scroll_opts()
+        def set_horizontal_scroll_opts():
+            self.scroll_opts.append('para direita')
+            self.scroll_opts.append('para esquerda')
+            self.scroll_clicked.set('para direita')
+            self.show_scroll_opts()
+
+        self.scroll_vertical = Button(self.add_cmd_frame, text='vertical', command=set_vertical_scroll_opts, bd=2, bg=self.edit_btn_color)
+        self.scroll_vertical.place(relx=0.25, rely=0.4, relwidth=0.25, relheight=0.1)
+
+        self.scroll_horizontal= Button(self.add_cmd_frame, text='horizontal', command=set_horizontal_scroll_opts, bd=2, bg=self.edit_btn_color)
+        self.scroll_horizontal.place(relx=0.55, rely=0.4, relwidth=0.25, relheight=0.1)
+    def show_scroll_opts(self):
+        self.scroll_vertical.destroy()
+        self.scroll_horizontal.destroy()
+        self.scroll_options = OptionMenu(self.add_cmd_frame, self.scroll_clicked, *self.scroll_opts)
+        self.scroll_options.place(relx=0.37, rely=0.4, relwidth=0.25, relheight=0.1)
+
+        self.save_new_mouse_cmd = Button(self.add_cmd_frame, text='Salvar', bd=2, bg=self.edit_btn_color)
+        self.save_new_mouse_cmd.place(relx=0.37, rely=0.7, relwidth=0.25, relheight=0.1)
     def edit_command(self):
         if self.command_selected == '':
             self.show_none_cmd_selected_err()
