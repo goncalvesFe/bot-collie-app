@@ -611,6 +611,15 @@ class Application(Funcs):
         self.btn_save = Button(self.add_cmd_frame, text='Salvar', command=self.save_special_char_cmd, bd=2, bg=self.edit_btn_color)
         self.btn_save.place(relx=0.375, rely=0.88, relwidth=0.25, relheight=0.1)
     def open_mouse_cmds(self):
+        def validate_mouse_pos(text):
+            if text == '': return True
+            try:
+                value = int(text)
+            except ValueError:
+                return False
+            return 0 <= value <= 100
+        self.vcmd2 = (self.root.register(validate_mouse_pos), '%P')
+
         self.btn_keyboard_opt.destroy()
         self.btn_mouse_opt.destroy()
         self.add_cmd_mouse_title = Label(self.add_cmd_frame, text='Selecione o tipo de comando', bg=self.frame_bg_color, font=('Arial', 15))
@@ -620,7 +629,7 @@ class Application(Funcs):
         self.lbl_mouse_pos.place(relx=0.25, rely=0.25, relwidth=0.25, relheight=0.1)
         self.lbl_xpos = Label(self.add_cmd_frame, text='x:', bg=self.frame_bg_color, font=('Arial', 15))
         self.lbl_xpos.place(relx=0.53, rely=0.25, relwidth=0.05, relheight=0.1)
-        self.xpos = Entry(self.add_cmd_frame, bg=self.edit_btn_color)
+        self.xpos = Entry(self.add_cmd_frame, bg=self.edit_btn_color, validate='key', validatecommand=self.vcmd2)
         self.xpos.place(relx=0.58, rely=0.25, relwidth=0.1, relheight=0.1)
         self.lbl_ypos = Label(self.add_cmd_frame, text='y:', bg=self.frame_bg_color, font=('Arial', 15))
         self.lbl_ypos.place(relx=0.68, rely=0.25, relwidth=0.05, relheight=0.1)
