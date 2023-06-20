@@ -133,15 +133,15 @@ class Funcs():
             if dx == 0:
                 hscroll = dx
             elif dx == -1:
-                hscroll = 'right'
+                hscroll = 'para direita'
             elif dx == 1:
-                hscroll = 'left'
+                hscroll = 'para esquerda'
             if dy == 0:
                 vscroll = dy
             elif dy == -1:
-                vscroll = 'down'
+                vscroll = 'para baixo'
             elif dy == 1:
-                vscroll = 'up'
+                vscroll = 'para cima'
             # command: ‘x,y,dx,dy’
             mouse_scroll = f'{x},{y},{hscroll},{vscroll}'
             print(mouse_scroll)
@@ -192,8 +192,8 @@ class Funcs():
                     else:
                         dx = cmd_str_split[2]
                         dy = cmd_str_split[3]
-                        if dx == '0': pyautogui.scroll(10 if dy == 'up' else -10, x=x_pos, y=y_pos)
-                        else: pyautogui.hscroll(10 if dx == 'right' else -10, x=x_pos, y=y_pos)
+                        if dx == '0': pyautogui.scroll(10 if dy == 'para cima' else -10, x=x_pos, y=y_pos)
+                        else: pyautogui.hscroll(10 if dx == 'para direita' else -10, x=x_pos, y=y_pos)
             self.disconnect_database()
     def save_special_char_cmd(self):
         if self.special_selected == '':
@@ -239,16 +239,27 @@ class Funcs():
         self.cmd_seleted.config(text=self.command_selected)
         self.update_edit_tree()
     def save_new_mouse_click(self):
+        self.subtype_mouse_cmd = 'click'
+        self.save_new_mouse_command()
+    def save_new_mouse_scroll(self):
+        self.subtype_mouse_cmd = 'scroll'
+        self.save_new_mouse_command()
+    def save_new_mouse_command(self):
         self.calculate_command_order()
-        print('salvar click do mouse')
-        num_click = 1 if self.num_clicked.get() == 'Simples' else 2
-        mouse_click_cmd = f'{self.xpos.get()},{self.ypos.get()},{self.choices_clicked.get()},{num_click}'
-        # self.connect_database()
-        insert_query = f"INSERT INTO comando (automacao_id, type, subtype, command, cmdOrder) VALUES ({self.aut_id_selected}, 'mouse', 'click', '{mouse_click_cmd}', {self.cmdOrder})"
-        print('insert_query: ', insert_query)
-        # self.cursor.execute(insert_query)
-        # self.conn.commit()
-        # self.disconnect_database()
+        mouse_pos = f'{self.xpos.get()},{self.ypos.get()},'
+        mouse_cmd = ''
+        if self.subtype_mouse_cmd == 'click':
+            num_click = 1 if self.num_clicked.get() == 'Simples' else 2
+            mouse_cmd = mouse_pos + f'{self.choices_clicked.get()},{num_click}'
+        if self.subtype_mouse_cmd == 'scroll':
+            mouse_cmd = mouse_pos + f'0,{self.scroll_clicked.get()}' if self.scroll_sense == 'vertical' else mouse_pos + f'{self.scroll_clicked.get()},0'
+        self.connect_database()
+        insert_query = f"INSERT INTO comando (automacao_id, type, subtype, command, cmdOrder) VALUES ({self.aut_id_selected}, 'mouse', 'click', '{mouse_cmd}', {self.cmdOrder})"
+        self.cursor.execute(insert_query)
+        self.conn.commit()
+        self.disconnect_database()
+        self.update_all_cmd_order()
+        self.reload_cmd_wiget()
     def temp_check_tables(self):
         self.connect_database()
         las_aut_id = self.cursor.execute('SELECT MAX(id) FROM automacao').fetchone()[0]
@@ -649,11 +660,13 @@ class Application(Funcs):
         self.scroll_opts = []
         self.scroll_clicked = StringVar()
         def set_vertical_scroll_opts():
+            self.scroll_sense = 'vertical'
             self.scroll_opts.append('para cima')
             self.scroll_opts.append('para baixo')
             self.scroll_clicked.set('para cima')
             self.show_scroll_opts()
         def set_horizontal_scroll_opts():
+            self.scroll_sense = 'horizontal'
             self.scroll_opts.append('para direita')
             self.scroll_opts.append('para esquerda')
             self.scroll_clicked.set('para direita')
@@ -670,7 +683,7 @@ class Application(Funcs):
         self.scroll_options = OptionMenu(self.add_cmd_frame, self.scroll_clicked, *self.scroll_opts)
         self.scroll_options.place(relx=0.37, rely=0.4, relwidth=0.25, relheight=0.1)
 
-        self.save_new_mouse_cmd = Button(self.add_cmd_frame, text='Salvar', bd=2, bg=self.edit_btn_color)
+        self.save_new_mouse_cmd = Button(self.add_cmd_frame, text='Salvar', command=self.save_new_mouse_scroll, bd=2, bg=self.edit_btn_color)
         self.save_new_mouse_cmd.place(relx=0.37, rely=0.7, relwidth=0.25, relheight=0.1)
     def edit_command(self):
         if self.command_selected == '':
