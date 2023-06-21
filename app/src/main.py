@@ -245,16 +245,28 @@ class Funcs():
         self.subtype_mouse_cmd = 'scroll'
         self.save_new_mouse_command()
     def save_new_mouse_command(self):
-        self.calculate_command_order()
+        if len(self.xpos.get()) == 0 or len(self.ypos.get()) == 0:
+            messagebox.showerror(title='Erro', message='Campo posição do mouse vazio')
+        else:
+            if self.edit_cmd:
+                self.build_mouse_command()
+                self.new_cmd = self.mouse_cmd
+                self.update_cmd()
+            else:
+                self.insert_new_mouse_cmd()
+    def build_mouse_command(self):
         mouse_pos = f'{self.xpos.get()},{self.ypos.get()},'
-        mouse_cmd = ''
+        self.mouse_cmd = ''
         if self.subtype_mouse_cmd == 'click':
             num_click = 1 if self.num_clicked.get() == 'Simples' else 2
-            mouse_cmd = mouse_pos + f'{self.choices_clicked.get()},{num_click}'
+            self.mouse_cmd = mouse_pos + f'{self.choices_clicked.get()},{num_click}'
         if self.subtype_mouse_cmd == 'scroll':
-            mouse_cmd = mouse_pos + f'0,{self.scroll_clicked.get()}' if self.scroll_sense == 'vertical' else mouse_pos + f'{self.scroll_clicked.get()},0'
+            self.mouse_cmd = mouse_pos + f'0,{self.scroll_clicked.get()}' if self.scroll_sense == 'vertical' else mouse_pos + f'{self.scroll_clicked.get()},0'
+    def insert_new_mouse_cmd(self):
+        self.calculate_command_order()
+        self.build_mouse_command()
         self.connect_database()
-        insert_query = f"INSERT INTO comando (automacao_id, type, subtype, command, cmdOrder) VALUES ({self.aut_id_selected}, 'mouse', 'click', '{mouse_cmd}', {self.cmdOrder})"
+        insert_query = f"INSERT INTO comando (automacao_id, type, subtype, command, cmdOrder) VALUES ({self.aut_id_selected}, 'mouse', 'click', '{self.mouse_cmd}', {self.cmdOrder})"
         self.cursor.execute(insert_query)
         self.conn.commit()
         self.disconnect_database()
@@ -620,8 +632,9 @@ class Application(Funcs):
             return 0 <= value <= 100000
         self.vcmd = (self.root.register(validate_mouse_pos), '%P')
 
-        self.btn_keyboard_opt.destroy()
-        self.btn_mouse_opt.destroy()
+        if not self.edit_cmd:
+            self.btn_keyboard_opt.destroy()
+            self.btn_mouse_opt.destroy()
         self.add_cmd_mouse_title = Label(self.add_cmd_frame, text='Selecione o tipo de comando', bg=self.frame_bg_color, font=('Arial', 15))
         self.add_cmd_mouse_title.place(relx=0, rely=0, relwidth=1, relheight=0.2)
 
@@ -695,18 +708,18 @@ class Application(Funcs):
         self.save_new_mouse_cmd = Button(self.add_cmd_frame, text='Salvar', command=self.save_new_mouse_scroll, bd=2, bg=self.edit_btn_color)
         self.save_new_mouse_cmd.place(relx=0.37, rely=0.7, relwidth=0.25, relheight=0.1)
     def edit_command(self):
+        def get_mouse_command(cmd_str, cmd_idx):
+            mouse_commands = cmd_str.split(',')
+            return mouse_commands[cmd_idx]
+        def set_mouse_position():
+            self.xpos.insert(0, get_mouse_command(self.command_selected, 0))
+            self.ypos.insert(0, get_mouse_command(self.command_selected, 1))
+
         if self.command_selected == '':
             self.show_none_cmd_selected_err()
         else:
             self.edit_cmd = True
-            print('--- EDITAR COMANDO ---')
-            print('self.cmd_id_selected: ', self.cmd_id_selected)
-            print('self.cmd_order_selected: ', self.cmd_order_selected)
-            print('self.cmd_subtype: ', self.cmd_subtype)
-            print('self.command_selected: ', self.command_selected)
             self.add_cmd()
-            # verificar depois se é teclado ou mouse
-            # teclado
             if self.cmd_subtype == 'Pressionar':
                 self.keyboard_press()
             elif self.cmd_subtype == 'Escrever':
@@ -715,5 +728,28 @@ class Application(Funcs):
                 self.keyboard_hold()
             elif self.cmd_subtype == 'Soltar':
                 self.keyboard_release()
+            elif self.cmd_subtype == 'click':
+                self.open_mouse_cmds()
+                self.open_click_mouse_opts()
+                set_mouse_position()
+                self.choices_clicked.set(get_mouse_command(self.command_selected, 2))
+                self.num_clicked.set('Simples' if get_mouse_command(self.command_selected, 3) == '1' else 'Duplo')
+            elif self.cmd_subtype == 'scroll':
+                self.open_mouse_cmds()
+                self.open_scroll_mouse_opts()
+                set_mouse_position()
+                if get_mouse_command(self.command_selected, 2) == '0':
+                    self.scroll_sense = 'vertical'
+                    self.scroll_opts.append('para cima')
+                    self.scroll_opts.append('para baixo')
+                    self.scroll_clicked.set(get_mouse_command(self.command_selected, 3))
+                    self.show_scroll_opts()
+                else:
+                    self.scroll_sense = 'horizontal'
+                    self.scroll_opts.append('para direita')
+                    self.scroll_opts.append('para esquerda')
+                    self.scroll_clicked.set(get_mouse_command(self.command_selected, 2))
+                    self.show_scroll_opts()
+
 
 Application()
