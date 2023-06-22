@@ -89,6 +89,16 @@ class Funcs():
         self.save_commands()
         self.disconnect_database()
         self.update_tree()
+    def edit_automation_name(self):
+        new_aut_name = self.aut_name_edt_name.get()
+        if len(new_aut_name) == 0: messagebox.showerror(title='Erro', message='Nome inválido')
+        else:
+            self.connect_database()
+            self.cursor.execute(f"UPDATE automacao SET name = '{new_aut_name}' WHERE id = '{self.aut_id_selected}'")
+            self.conn.commit()
+            self.disconnect_database()
+            self.update_tree()
+            self.clean_edit_aut_name()
     def update_tree(self):
         self.tree_aut.delete(*self.tree_aut.get_children())
         self.connect_database()
@@ -402,6 +412,9 @@ class Application(Funcs):
         self.auto_selected = Label(self.frame_2, text='Selecione a automação', bg=self.edit_btn_color, font=('Arial', 15))
         self.auto_selected.place(relx=0.62, rely=0.03, relwidth=0.36, relheight=0.09)
 
+        self.btn_edit_nome_aut = Button(self.frame_2, text='Alterar nome da automação', command=self.show_edit_aut_name, bd=2, bg=self.edit_btn_color)
+        self.btn_edit_nome_aut.place(relx=0.62, rely=0.13, relwidth=0.36, relheight=0.07)
+
         self.btn_run_aut = Button(self.frame_2, text='Rodar automação', command=self.run_automation, bd=2, bg='#00A86B', fg='white')
         self.btn_run_aut.place(relx=0.62, rely=0.25, relwidth=0.36, relheight=0.09)
 
@@ -479,6 +492,24 @@ class Application(Funcs):
         self.del_cancel_btn.destroy()
         self.del_confirm_btn.destroy()
         self.widgets_frame_1()
+    def clean_edit_aut_name(self):
+        self.aut_name_edt_name.destroy()
+        self.edt_cancel_btn.destroy()
+        self.edt_save_btn.destroy()
+        self.widgets_frame_1()
+    def show_edit_aut_name(self):
+        if self.aut_name_selected == '':
+            self.error_txt = 'Nenhuma automação selecionada'
+            self.error_modal_screen()
+        else:
+            self.btn_add_aut.destroy()
+            self.aut_name_edt_name = Entry(self.frame_1, bg=self.edit_btn_color, justify='center', font=('Arial', 15))
+            self.aut_name_edt_name.insert(0, self.aut_name_selected)
+            self.aut_name_edt_name.place(relx=0.25, rely=0.2, relwidth=0.53, relheight=0.30)
+            self.edt_cancel_btn = Button(self.frame_1, text='Voltar', command=self.clean_edit_aut_name, bd=2, bg='#c93045', fg='white')
+            self.edt_cancel_btn.place(relx=0.25, rely=0.57, relwidth=0.23, relheight=0.25)
+            self.edt_save_btn = Button(self.frame_1, text='Salvar', command=self.edit_automation_name, bd=2, bg='#00A86B', fg='white')
+            self.edt_save_btn.place(relx=0.55, rely=0.57, relwidth=0.23, relheight=0.25)
     def delete_aut_confirmation(self):
         if self.aut_name_selected == '':
             self.error_txt = 'Nenhuma automação selecionada'
