@@ -405,8 +405,8 @@ class Application(Funcs):
                 self.auto_selected.config(text=self.aut_name_selected)
         self.tree_aut.bind('<<TreeviewSelect>>', get_item_selected)
 
-        self.scroll = Scrollbar(self.frame_2, orient='vertical')
-        self.tree_aut.configure(yscroll=self.scroll)
+        self.scroll = Scrollbar(self.frame_2, orient='vertical', troughcolor=self.frame_bg_color, bd=2)
+        self.tree_aut.configure(yscroll=self.scroll.set)
         self.scroll.place(relx=0.57, rely=0, relwidth=0.02, relheight=1)
 
         self.auto_selected = Label(self.frame_2, text='Selecione a automação', bg=self.edit_btn_color, font=('Arial', 15))
@@ -451,8 +451,8 @@ class Application(Funcs):
                 self.cmd_seleted.config(text=self.command_selected)
         self.tree_command.bind('<<TreeviewSelect>>', get_cmd_selected)
 
-        self.ed_scroll = Scrollbar(self.edit_frame, orient='vertical')
-        self.tree_command.configure(yscroll=self.ed_scroll)
+        self.ed_scroll = Scrollbar(self.edit_frame, orient='vertical', troughcolor=self.frame_bg_color, bd=2)
+        self.tree_command.configure(yscroll=self.ed_scroll.set)
         self.ed_scroll.place(relx=0.57, rely=0, relwidth=0.02, relheight=1)
 
         self.add_above_lbl = Label(self.edit_frame, text='Adicionar comando acima', bg=self.frame_bg_color, font=('Arial', 13))
@@ -647,8 +647,8 @@ class Application(Funcs):
                 self.special_selected = item['values'][0]
         self.tree_special_opts.bind('<<TreeviewSelect>>', get_opt_selected)
 
-        self.opt_scroll = Scrollbar(self.add_cmd_frame, orient='vertical')
-        self.tree_special_opts.configure(yscroll=self.opt_scroll)
+        self.opt_scroll = Scrollbar(self.add_cmd_frame, orient='vertical', troughcolor=self.frame_bg_color, bd=2)
+        self.tree_special_opts.configure(yscroll=self.opt_scroll.set)
         self.opt_scroll.place(relx=0.625, rely=0.15, relwidth=0.02, relheight=0.7)
 
         self.btn_save = Button(self.add_cmd_frame, text='Salvar', command=self.save_special_char_cmd, bd=2, bg=self.edit_btn_color)
