@@ -1,4 +1,5 @@
 import sqlite3
+import time
 from tkinter import *
 from tkinter import ttk, messagebox
 
@@ -25,11 +26,16 @@ class Funcs():
     def delete_automation(self):
         self.connect_database()
         self.cursor.execute(f"DELETE FROM automacao WHERE id='{self.aut_id_selected}'")
+        self.conn.commit()
+        self.disconnect_database()
+        self.delete_aut_command()
+        self.update_tree()
+        self.clean_del_confirm()
+    def delete_aut_command(self):
+        self.connect_database()
         self.cursor.execute(f"DELETE FROM comando WHERE automacao_id='{self.aut_id_selected}'")
         self.conn.commit()
         self.disconnect_database()
-        self.update_tree()
-        self.clean_del_confirm()
     def update_cmd_order(self):
         self.connect_database()
         ids = self.cursor.execute(f"SELECT id FROM comando WHERE automacao_id='{self.aut_id_selected}' AND cmdOrder > '{self.cmd_order_selected}' ORDER BY cmdOrder ASC").fetchall()
@@ -191,7 +197,7 @@ class Funcs():
                         pyautogui.keyDown(check_cmd(cmd))
                     elif subtype == 'Soltar':
                         pyautogui.keyUp(check_cmd(cmd))
-                else:
+                elif type == 'mouse':
                     cmd_str_split = cmd.split(',')
                     x_pos = int(cmd_str_split[0])
                     y_pos = int(cmd_str_split[1])
@@ -204,6 +210,7 @@ class Funcs():
                         dy = cmd_str_split[3]
                         if dx == '0': pyautogui.scroll(10 if dy == 'para cima' else -10, x=x_pos, y=y_pos)
                         else: pyautogui.hscroll(10 if dx == 'para direita' else -10, x=x_pos, y=y_pos)
+                else: time.sleep(int(cmd))
             self.disconnect_database()
     def save_special_char_cmd(self):
         if self.special_selected == '':
@@ -281,6 +288,29 @@ class Funcs():
         self.conn.commit()
         self.disconnect_database()
         self.update_all_cmd_order()
+        self.reload_cmd_wiget()
+    def save_wait_command(self):
+        self.wait_in_sec = self.entry_add_cmd_wait.get()
+        if len(self.wait_in_sec) == 0:
+            messagebox.showerror(title='Erro', message='Não é possível adicionar um tempo vazio')
+        else:
+            if self.edit_cmd: self.update_waiting_time()
+            else: self.insert_waiting_time()
+    def insert_waiting_time(self):
+        self.calculate_command_order()
+        self.connect_database()
+        insert_query = f"INSERT INTO comando (automacao_id, type, subtype, command, cmdOrder) VALUES ({self.aut_id_selected}, 'wait', 'aguardar', '{self.wait_in_sec}', {self.cmdOrder})"
+        self.cursor.execute(insert_query)
+        self.conn.commit()
+        self.disconnect_database()
+        self.update_all_cmd_order()
+        self.reload_cmd_wiget()
+    def update_waiting_time(self):
+        self.connect_database()
+        self.cursor.execute(f"UPDATE comando SET command = '{self.wait_in_sec}' WHERE id = '{self.cmd_id_selected}'")
+        self.conn.commit()
+        self.disconnect_database()
+        self.edit_cmd = False
         self.reload_cmd_wiget()
     def temp_check_tables(self):
         self.connect_database()
@@ -551,12 +581,17 @@ class Application(Funcs):
             if  not self.edit_cmd: self.add_cmd_wiget_frame()
     def add_cmd_wiget_frame(self):
         self.btn_keyboard_opt = Button(self.add_cmd_frame, text='Comandos teclado', command=self.open_keyboard_cmds, bd=2, bg=self.edit_btn_color)
-        self.btn_keyboard_opt.place(relx=0.05, rely=0.02, relwidth=0.4, relheight=0.1)
+        self.btn_keyboard_opt.place(relx=0.3, rely=0.1, relwidth=0.4, relheight=0.1)
         self.btn_mouse_opt = Button(self.add_cmd_frame, text='Comandos mouse', command=self.open_mouse_cmds, bd=2, bg=self.edit_btn_color)
-        self.btn_mouse_opt.place(relx=0.55, rely=0.02, relwidth=0.4, relheight=0.1)
-    def open_keyboard_cmds(self):
+        self.btn_mouse_opt.place(relx=0.3, rely=0.3, relwidth=0.4, relheight=0.1)
+        self.btn_wait_opt = Button(self.add_cmd_frame, text='Aguardar', command=self.open_wait_cmd, bd=2, bg=self.edit_btn_color)
+        self.btn_wait_opt.place(relx=0.3, rely=0.5, relwidth=0.4, relheight=0.1)
+    def clean_types_commands(self):
         self.btn_keyboard_opt.destroy()
         self.btn_mouse_opt.destroy()
+        self.btn_wait_opt.destroy()
+    def open_keyboard_cmds(self):
+        self.clean_types_commands()
         self.add_cmd_keyboard_title = Label(self.add_cmd_frame, text='Selecione o tipo de comando', bg=self.frame_bg_color, font=('Arial', 15))
         self.add_cmd_keyboard_title.place(relx=0, rely=0, relwidth=1, relheight=0.2)
 
@@ -663,9 +698,7 @@ class Application(Funcs):
             return 0 <= value <= 100000
         self.vcmd = (self.root.register(validate_mouse_pos), '%P')
 
-        if not self.edit_cmd:
-            self.btn_keyboard_opt.destroy()
-            self.btn_mouse_opt.destroy()
+        if not self.edit_cmd: self.clean_types_commands()
         self.add_cmd_mouse_title = Label(self.add_cmd_frame, text='Selecione o tipo de comando', bg=self.frame_bg_color, font=('Arial', 15))
         self.add_cmd_mouse_title.place(relx=0, rely=0, relwidth=1, relheight=0.2)
 
@@ -738,6 +771,26 @@ class Application(Funcs):
 
         self.save_new_mouse_cmd = Button(self.add_cmd_frame, text='Salvar', command=self.save_new_mouse_scroll, bd=2, bg=self.edit_btn_color)
         self.save_new_mouse_cmd.place(relx=0.37, rely=0.7, relwidth=0.25, relheight=0.1)
+    def open_wait_cmd(self):
+        def validate_wait_entry(text):
+            if text == '': return True
+            try:
+                value = int(text)
+            except ValueError:
+                return False
+            return 0 <= value <= 10000000000
+        self.validate_wait = (self.root.register(validate_wait_entry), '%P')
+        if not self.edit_cmd: self.clean_types_commands()
+        self.add_cmd_wait_title = Label(self.add_cmd_frame, text='Aguardar', bg=self.frame_bg_color, font=('Arial', 15))
+        self.add_cmd_wait_title.place(relx=0, rely=0, relwidth=1, relheight=0.2)
+
+        self.lbl_add_cmd_wait = Label(self.add_cmd_frame, text='Coloque abaixo o tempo em segundos', bg=self.frame_bg_color, font=('Arial', 15))
+        self.lbl_add_cmd_wait.place(relx=0, rely=0.2, relwidth=1, relheight=0.2)
+        self.entry_add_cmd_wait = Entry(self.add_cmd_frame, bg=self.edit_btn_color, validate='key', validatecommand=self.validate_wait, justify='center', font=('Arial', 15))
+        self.entry_add_cmd_wait.place(relx=0.35, rely=0.4, relwidth=0.3, relheight=0.1)
+
+        self.btn_save_wait_cmd = Button(self.add_cmd_frame, text='Salvar', command=self.save_wait_command, bd=2, bg=self.edit_btn_color)
+        self.btn_save_wait_cmd.place(relx=0.35, rely=0.7, relwidth=0.3, relheight=0.1)
     def edit_command(self):
         def get_mouse_command(cmd_str, cmd_idx):
             mouse_commands = cmd_str.split(',')
@@ -781,6 +834,9 @@ class Application(Funcs):
                     self.scroll_opts.append('para esquerda')
                     self.scroll_clicked.set(get_mouse_command(self.command_selected, 2))
                     self.show_scroll_opts()
+            elif self.cmd_subtype == 'aguardar':
+                self.open_wait_cmd()
+                self.entry_add_cmd_wait.insert(0, int(self.command_selected))
 
 
 Application()
