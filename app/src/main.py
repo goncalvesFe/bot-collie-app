@@ -109,15 +109,25 @@ class Funcs():
         self.tree_aut.delete(*self.tree_aut.get_children())
         self.connect_database()
         list = self.cursor.execute('SELECT id, name FROM  automacao')
+        rowcount = 0
         for i in list:
-            self.tree_aut.insert("", END, values=i)
+            if rowcount % 2 == 0:
+                self.tree_aut.insert("", END, values=i, tags=('oddrow',))
+            else:
+                self.tree_aut.insert("", END, values=i, tags=('evenrow',))
+            rowcount += 1
         self.disconnect_database()
     def update_edit_tree(self):
         self.tree_command.delete(*self.tree_command.get_children())
         self.connect_database()
         list = self.cursor.execute(f"SELECT id, cmdOrder, subtype, command FROM comando WHERE automacao_id = '{self.aut_id_selected}' ORDER BY cmdOrder ASC")
+        rowcount = 0
         for i in list:
-            self.tree_command.insert("", END, values=i)
+            if rowcount % 2 == 0: 
+                self.tree_command.insert("", END, values=i, tags=('oddrow',))
+            else:
+                self.tree_command.insert("", END, values=i, tags=('evenrow',))
+            rowcount += 1
         self.disconnect_database()
     def init_listeners(self):
         # estrutura dos comandos adicionados sempre será:
@@ -417,6 +427,8 @@ class Application(Funcs):
         self.init_listeners()
     def widgets_frame_2(self):
         self.tree_aut = ttk.Treeview(self.frame_2, height=3, column=('col1', 'col2'), show='headings')
+        self.tree_aut.tag_configure('oddrow', background='white')
+        self.tree_aut.tag_configure('evenrow', background=self.frame_bg_color)
         self.tree_aut.heading('#0', text='')
         self.tree_aut.heading('#1', text='ID')
         self.tree_aut.heading('#2', text='Automações')
@@ -455,6 +467,8 @@ class Application(Funcs):
         self.btn_del_aut.place(relx=0.62, rely=0.55, relwidth=0.36, relheight=0.09)
     def edit_widget_frame(self):
         self.tree_command = ttk.Treeview(self.edit_frame, height=3, column=('col1', 'col2', 'col3', 'col4'), show='headings')
+        self.tree_command.tag_configure('oddrow', background='white')
+        self.tree_command.tag_configure('evenrow', background=self.frame_bg_color)
         self.tree_command.heading('#0', text='')
         self.tree_command.heading('#1', text='ID')
         self.tree_command.heading('#2', text='Ordem')
@@ -667,8 +681,15 @@ class Application(Funcs):
     def show_special_opts(self):
         if not self.edit_cmd: self.clean_opt_btns()
         self.tree_special_opts = ttk.Treeview(self.add_cmd_frame, height=3, column=('col1'), show='headings')
+        self.tree_special_opts.tag_configure('oddrow', background='white')
+        self.tree_special_opts.tag_configure('evenrow', background=self.frame_bg_color)
+        rowcount = 0
         for opt in special_opts:
-            self.tree_special_opts.insert("", END, values=opt)
+            if rowcount % 2 == 0: 
+                self.tree_special_opts.insert("", END, values=opt, tags=('oddrow',))
+            else:
+                self.tree_special_opts.insert("", END, values=opt, tags=('evenrow',))
+            rowcount += 1
         self.tree_special_opts.heading('#0', text='')
         self.tree_special_opts.heading('#1', text='opções')
         self.tree_special_opts.column('#0', width=1)
