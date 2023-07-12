@@ -1,4 +1,9 @@
-app/bot-collie.db
-app/lib
-app/src/__pycache__
+bin/
+build/
+dist/
+include/
+lib/
+lib64/
 output/
+app/src/__pycache__
+bot-collie.db
