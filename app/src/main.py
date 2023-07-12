@@ -404,7 +404,7 @@ class Application(Funcs):
         self.frame_2 = Frame(self.root, bd=4, bg=self.frame_bg_color, highlightbackground='white', highlightthickness=3)
         self.frame_2.place(relx=0.02, rely=0.3, relwidth=0.96, relheight=0.68)
     def widgets_frame_1(self):
-        self.logo_img = PhotoImage(file='assets/bot_collie_logo90X70.png')
+        self.logo_img = PhotoImage(file='bot_collie_logo90X70.png')
         self.logo = Label(self.frame_1, image=self.logo_img, bg=self.frame_bg_color)
         self.logo.place(relx=0, rely=0)
         self.btn_add_aut = Button(self.frame_1, text='Criar nova automação', command=self.show_add_aut_confirmation, bd=2, bg='#00A86B', fg='white')
