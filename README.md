@@ -22,3 +22,8 @@ Additional Files -> Colocar todos os arquivos que o projeto precisa para funcion
 clicar em converter
 
 Ao terminar ele irá gerar uma pasta de nome output, o exe estára la dentro. Duplo clique nele e bala
+
+## Zipar pasta com exe
+Clicar com botão direito na pasta
+Selecionar comprimir
+Digitar nome do arquivo comprimido e bala
