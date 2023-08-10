@@ -134,11 +134,12 @@ class Funcs():
         # commands = [['type', 'subtype', 'cmd'], ['type', 'subtype', 'cmd'], ...]
         pyautogui.hotkey('win', 'd')
         def on_press(key):
-            self.commands.append(['keyboard', 'Pressionar', key])
-            try:
-                print('alphanumeric key {0} pressed'.format(key.char))
-            except AttributeError:
-                print('special key {0} pressed'.format(key))
+            if key != keyboard.Key.esc:
+                self.commands.append(['keyboard', 'Pressionar', key])
+            # try:
+            #     print('alphanumeric key {0} pressed'.format(key.char))
+            # except AttributeError:
+            #     print('special key {0} pressed'.format(key))
         def on_release(key):
             if key == keyboard.Key.esc:
                 self.save_automation()
@@ -153,7 +154,7 @@ class Funcs():
             if pressed:
                 # command: ‘x,y,button,num’ 
                 mouse_click = f'{x},{y},{btn},1'
-                print(mouse_click)
+                # print(mouse_click)
                 self.commands.append(['mouse', 'click', mouse_click])
         def on_scroll(x, y, dx, dy):
             if dx == 0:
@@ -170,7 +171,7 @@ class Funcs():
                 vscroll = 'para cima'
             # command: ‘x,y,dx,dy’
             mouse_scroll = f'{x},{y},{hscroll},{vscroll}'
-            print(mouse_scroll)
+            # print(mouse_scroll)
             self.commands.append(['mouse', 'scroll', mouse_scroll])
         self.keyboard_listener = keyboard.Listener(on_press=on_press, on_release=on_release)
         self.keyboard_listener.start()
