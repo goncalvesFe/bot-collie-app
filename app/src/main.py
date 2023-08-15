@@ -2,6 +2,7 @@ import sqlite3
 import time
 from tkinter import *
 from tkinter import ttk, messagebox
+import customtkinter
 
 import pyautogui
 from pynput import keyboard, mouse
@@ -400,16 +401,25 @@ class Application(Funcs):
         self.confirm_btn = Button(self.error_modal_frame, text='Ok', command=self.root_error_modal.destroy, bd=2, bg=self.root_bg_color, fg='white')
         self.confirm_btn.place(relx= 0.1, rely=0.5, relwidth=0.8, relheight=0.15)
     def screen_frames(self):
-        self.frame_1 = Frame(self.root, bd=4, bg=self.frame_bg_color, highlightbackground='white', highlightthickness=3)
+        self.frame_1 = customtkinter.CTkFrame(master=self.root, bd=4, bg=self.frame_bg_color, highlightbackground='white', highlightthickness=3)
         self.frame_1.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.25)
         self.frame_2 = Frame(self.root, bd=4, bg=self.frame_bg_color, highlightbackground='white', highlightthickness=3)
         self.frame_2.place(relx=0.02, rely=0.3, relwidth=0.96, relheight=0.68)
     def widgets_frame_1(self):
         self.logo_img = PhotoImage(file='bot_collie_logo90X70.png')
-        self.logo = Label(self.frame_1, image=self.logo_img, bg=self.frame_bg_color)
+        # self.logo = Label(self.frame_1, image=self.logo_img, bg=self.frame_bg_color)
+        self.logo = customtkinter.CTkLabel(master=self.frame_1, image=self.logo_img, bg=self.frame_bg_color)
         self.logo.place(relx=0, rely=0)
-        self.btn_add_aut = Button(self.frame_1, text='Criar nova automação', command=self.show_add_aut_confirmation, bd=2, bg='#00A86B', fg='white')
-        self.btn_add_aut.place(relx=0.62, rely=0.5, relwidth=0.36, relheight=0.30)
+        # self.btn_add_aut = Button(self.frame_1, text='Criar nova automação', command=self.show_add_aut_confirmation, bd=2, bg='#00A86B', fg='white')
+        self.btn_add_aut = customtkinter.CTkButton(
+            master=self.frame_1, 
+            text='Criar nova automação',
+            command=self.show_add_aut_confirmation,
+            width=250,
+            height=50,
+            fg_color='#00A86B')
+        # self.btn_add_aut.place(relx=0.62, rely=0.5, relwidth=0.36, relheight=0.30)
+        self.btn_add_aut.place(relx=0.62, rely=0.5)
     def show_add_aut_confirmation(self):
         self.btn_add_aut.destroy()
         self.confirmation_msg = Label(self.frame_1, text='Para criar uma nova automação clique em Iniciar', bg=self.frame_bg_color, font=('Arial', 13))
