@@ -60,7 +60,9 @@ class Funcs():
     def delete_command(self):
         self.update_cmd_order()
         self.connect_database()
-        self.cursor.execute(f"DELETE FROM comando WHERE id='{self.cmd_id_selected}'")
+        for cmd_value in self.cmd_all_values_selected:
+            cmd_id = cmd_value[0]
+            self.cursor.execute(f"DELETE FROM comando WHERE id='{cmd_id}'")
         self.conn.commit()
         self.disconnect_database()
         self.update_edit_tree()
@@ -388,7 +390,8 @@ class Application(Funcs):
         else:
             self.widget_error_modal()
     def widget_confirm_cmd_del(self):
-        self.del_cmd_msg = Label(self.error_modal_frame, text='Deseja excluir o comando?', bg=self.frame_bg_color, font=('Arial', 14))
+        text_msg = f'Deseja excluir {"os comandos" if self.cmd_multiple_selections else "o comando"}?'
+        self.del_cmd_msg = Label(self.error_modal_frame, text=text_msg, bg=self.frame_bg_color, font=('Arial', 14))
         self.del_cmd_msg.place(relx=0, rely=0.1, relwidth=1, relheight=0.3)
         self.Ndel_cmd_confirm_btn = Button(self.error_modal_frame, text='Cancelar', command=self.reset_confirm_cmd_del, bd=2, bg='#00A86B', fg='white')
         self.Ndel_cmd_confirm_btn.place(relx= 0.15, rely=0.5, relwidth=0.3, relheight=0.15)
@@ -482,18 +485,34 @@ class Application(Funcs):
         self.tree_command.column('#4', width=300)
         self.tree_command.place(relx=0, rely=0, relwidth=0.57, relheight=1)
 
-        self.command_selected = ''
+        self.command_selected = []
         self.cmd_order_selected = 0
         self.cmd_id_selected = 0
         self.cmd_subtype = ''
+        self.cmd_multiple_selections = False
+        self.cmd_all_values_selected = []
+        def build_text_cmd(cmds_selected):
+            if len(cmds_selected) == 0:
+                return ''
+            if len(cmds_selected) == 1:
+                return cmds_selected[0]
+            response = ''
+            for cmd_selected in cmds_selected:
+                response = cmd_selected if response == '' else f'{response} | {cmd_selected}'
+
+            return response
         def get_cmd_selected(event):
+            self.command_selected = []
+            self.cmd_all_values_selected = []
             for cmd_item in self.tree_command.selection():
-                item = self.tree_command.item(cmd_item)
-                self.cmd_id_selected = item['values'][0]
-                self.cmd_order_selected = item['values'][1]
-                self.cmd_subtype = item['values'][2]
-                self.command_selected = item['values'][3]
-                self.cmd_seleted.config(text=self.command_selected)
+                values = self.tree_command.item(cmd_item)['values']
+                self.cmd_id_selected = values[0]
+                self.cmd_order_selected = values[1]
+                self.cmd_subtype = values[2]
+                self.command_selected.append(values[3])
+                self.cmd_all_values_selected.append(values)
+            self.cmd_seleted.config(text=build_text_cmd(self.command_selected))
+            self.cmd_multiple_selections = True if len(self.command_selected) > 1 else False
         self.tree_command.bind('<<TreeviewSelect>>', get_cmd_selected)
 
         self.ed_scroll = Scrollbar(self.edit_frame, orient='vertical', troughcolor=self.frame_bg_color, bd=2)
@@ -517,7 +536,7 @@ class Application(Funcs):
         self.add_below_btn = Button(self.edit_frame, text='+', command=self.set_add_cmd_below, bd=2, bg=self.edit_btn_color)
         self.add_below_btn.place(relx=0.62, rely=0.77, relwidth=0.36, relheight=0.05)
     def confirm_del_cmd(self):
-        if self.command_selected == '':
+        if len(self.command_selected) == 0:
             self.error_txt = 'Nenhum comando selecionado'
         else:
             self.confirm_cmd_del = True
@@ -570,16 +589,23 @@ class Application(Funcs):
     def show_none_cmd_selected_err(self):
         self.error_txt = 'Nenhum comando selecionado'
         self.error_modal_screen()
+    def show_cmd_multiple_selected_err(self):
+        self.error_txt = 'Selecione apenas um comando'
+        self.error_modal_screen()
     def set_add_cmd_above(self):
-        if self.command_selected == '':
+        if  len(self.command_selected) == 0:
             self.show_none_cmd_selected_err()
+        elif self.cmd_multiple_selections:
+            self.show_cmd_multiple_selected_err()
         else:
             self.add_cmd_dir = 'above'
             self.edit_cmd = False
             self.add_cmd()
     def set_add_cmd_below(self):
-        if self.command_selected == '':
+        if len(self.command_selected) == 0:
             self.show_none_cmd_selected_err()
+        elif self.cmd_multiple_selections:
+            self.show_cmd_multiple_selected_err()
         else:
             self.add_cmd_dir = 'below'
             self.edit_cmd = False
@@ -821,8 +847,10 @@ class Application(Funcs):
             self.xpos.insert(0, get_mouse_command(self.command_selected, 0))
             self.ypos.insert(0, get_mouse_command(self.command_selected, 1))
 
-        if self.command_selected == '':
+        if len(self.command_selected) == 0:
             self.show_none_cmd_selected_err()
+        elif self.cmd_multiple_selections:
+            self.show_cmd_multiple_selected_err()
         else:
             self.edit_cmd = True
             self.add_cmd()
