@@ -147,6 +147,8 @@ class Funcs():
                 self.save_automation()
                 # Stop listeners
                 self.mouse_listener.stop()
+                self.switch_btn_state = 'normal'
+                self.switch_all_screen_buttons_state()
                 return False
         def on_move(x, y):
             # print('Pointer moved to {0}'.format((x, y)))
@@ -339,6 +341,7 @@ class Application(Funcs):
         self.error_txt = 'Ocorreu um erro'
         self.confirm_cmd_del = False
         self.commands = []
+        self.switch_btn_state = ''
         self.new_aut_id = 0
         self.root = root
         self.screen()
@@ -428,6 +431,8 @@ class Application(Funcs):
         self.widgets_frame_1()
     def init_aut(self):
         self.clean_add_aut()
+        self.switch_btn_state = 'disabled'
+        self.switch_all_screen_buttons_state()
         self.init_listeners()
     def widgets_frame_2(self):
         self.tree_aut = ttk.Treeview(self.frame_2, height=3, column=('col1', 'col2'), show='headings')
@@ -883,6 +888,10 @@ class Application(Funcs):
             elif self.cmd_subtype == 'aguardar':
                 self.open_wait_cmd()
                 self.entry_add_cmd_wait.insert(0, int(self.command_selected))
+    def switch_all_screen_buttons_state(self):
+        btns_main_screen = [self.btn_add_aut, self.btn_edit_nome_aut, self.btn_run_aut, self.btn_edit_aut, self.btn_del_aut]
+        for btn in btns_main_screen:
+            btn['state'] = self.switch_btn_state
 
 
 Application()
