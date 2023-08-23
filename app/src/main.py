@@ -544,10 +544,6 @@ class Application(Funcs):
     def reset_confirm_cmd_del(self):
         self.confirm_cmd_del = False
         self.root_error_modal.destroy()
-    def show_keyboard_opt(self):
-        pass
-    def show_mouse_opt(self):
-        pass
     def clean_del_confirm(self):
         self.aut_name_selected = ''
         self.auto_selected.config(text=self.aut_name_selected)
