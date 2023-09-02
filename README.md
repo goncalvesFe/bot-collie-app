@@ -1,15 +1,24 @@
 # bot-collie-app versão 0
 ## Para ativar ambiente virtual
-
 cd app
 source bin/activate
 
-## Para desativar ambiente virtual
+## Para rodar projeto
+entrar no diretório /src
+rodar:python3 main.py
 
+## Para desativar ambiente virtual
 deactivate
 
 ## Rodar o projeto
 python3 src/main.py
+
+## Gerar executável com pyinstaller
+procedimento pego do vídeo do python simplified -> link no obsidian
+rodar:
+pyinstaller --name nome_do_arquivo_exe --onefile --windowed main.py
+
+ele gera uma pasta dist com o exe, ele não roda se os arquivos que ele importa não estiver na mesma pasta (fotos, fontes e assets)
 
 ## Gerar executável com autoPytoexe
 no terminal entrar na pasta src/
