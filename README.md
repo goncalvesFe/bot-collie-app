@@ -11,7 +11,7 @@ deactivate
 ## Rodar o projeto
 python3 src/main.py
 
-## Gerar executável
+## Gerar executável com autoPytoexe
 no terminal entrar na pasta src/
 rodar comando: autopytoexe
 Script Location ->  escolher o arquivo principal
