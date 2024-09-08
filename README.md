@@ -13,6 +13,11 @@ deactivate
 ## Rodar o projeto
 python3 src/main.py
 
+## Usando pip no windows
+Pode ser que dentro do ambiente virtual o pip não funcione, se isso acontecer:
+1. Certificar-se que o pip funciona normal fora do ambiente
+2. rodar: py -m pip install [pacote]
+
 ## Gerar executável com pyinstaller
 procedimento pego do vídeo do python simplified -> link no obsidian
 rodar:
