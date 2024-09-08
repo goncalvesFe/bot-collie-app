@@ -6,6 +6,7 @@ import sys
 import os
 import pyautogui
 from pynput import keyboard, mouse
+from PIL import ImageTk, Image
 
 special_opts = [
     'accept', 'add', 'alt', 'altleft', 'altright', 'apps', 'backspace','browserback', 'browserfavorites', 'browserforward', 
@@ -376,13 +377,18 @@ class Application(Funcs):
     def config_constants(self):
         self.app_version = '1.0'
         self.title = f'Bot Collie - v_{self.app_version}'
-        self.root_bg_color = '#babdc2'
-        self.frame_bg_color = '#edeff2'
-        self.edit_btn_color = '#dae1eb'
+        #trout #4c5760
+        #cornflower #89ace3
+        #linkwater #e1eff6
+        #casablanca #f3b94d
+        #shark #25282a
+        self.root_bg_color = '#4c5760'
+        self.frame_bg_color = '#e1eff6'
+        self.edit_btn_color = '#89ace3'
     def screen(self):
         self.root.title(self.title)
         self.root.configure(background=self.root_bg_color)
-        self.root.geometry("900x800")
+        self.root.geometry("800x700")
         self.root.resizable(True, True)
         self.root.maxsize(width=1100, height=900)
         self.root.minsize(width=400, height=300)
@@ -433,7 +439,11 @@ class Application(Funcs):
         self.frame_2 = Frame(self.root, bd=4, bg=self.frame_bg_color, highlightbackground='white', highlightthickness=3)
         self.frame_2.place(relx=0.02, rely=0.3, relwidth=0.96, relheight=0.68)
     def widgets_frame_1(self):
-        self.logo_img = PhotoImage(file=resource_path('bot_collie_logo90X70.png'))
+        # tamanho da imagem original: 360X360
+        logo = Image.open('logo-trout.png')
+        resized = logo.resize((160,160))
+        #self.logo_img = PhotoImage(file=resource_path('logo-link-water.png'))
+        self.logo_img = ImageTk.PhotoImage(resized)
         self.logo = Label(self.frame_1, image=self.logo_img, bg=self.frame_bg_color)
         self.logo.place(relx=0, rely=0)
         self.btn_add_aut = Button(self.frame_1, text='Criar nova automação', command=self.show_add_aut_confirmation, bd=2, bg='#00A86B', fg='white')
