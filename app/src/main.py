@@ -107,6 +107,7 @@ class Funcs():
                 self.cursor.execute(insert_query)
             cmd_counter = cmd_counter + 1
         self.conn.commit()
+        self.commands = []
         self.disconnect_database()
     def save_automation(self):
         aut_id = 1
@@ -705,6 +706,7 @@ class Application(Funcs):
     def open_add_cmds(self):
         self.press_label = Label(self.add_cmd_frame, text=self.subtype_cmd, bg=self.frame_bg_color, font=('Arial', 15))
         self.press_label.place(relx=0, rely=0, relwidth=1, relheight=0.15)
+        self.command_selected = ''.join(self.command_selected)
         if self.edit_cmd:
             if self.entry_limit == 1:
                 if len(self.command_selected.split('.')) == 1:
