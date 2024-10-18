@@ -400,6 +400,7 @@ class Application(Funcs):
         self.root.geometry("700x600")
         self.root.resizable(True, True)
         self.root.minsize(width=600, height=500)
+        self.root.iconbitmap('logo-icon.ico')
     def edit_screen(self):
         if self.aut_name_selected == '':
             self.error_txt = 'Nenhuma automação selecionada'
@@ -713,9 +714,13 @@ class Application(Funcs):
     def open_add_cmds(self):
         self.press_label = Label(self.add_cmd_frame, text=self.subtype_cmd, bg=self.frame_bg_color, font=('Arial', 15))
         self.press_label.place(relx=0, rely=0, relwidth=1, relheight=0.15)
-        self.command_selected = ''.join(self.command_selected)
+        if isinstance(self.command_selected, str):
+            isString = True
+            self.command_selected = ''.join(self.command_selected)
+        else:
+            isString = False
         if self.edit_cmd:
-            if self.entry_limit == 1:
+            if self.entry_limit == 1 and isString:
                 if len(self.command_selected.split('.')) == 1:
                     self.show_character()
                 else:
@@ -928,7 +933,8 @@ class Application(Funcs):
                     self.show_scroll_opts()
             elif self.cmd_subtype == 'aguardar':
                 self.open_wait_cmd()
-                self.entry_add_cmd_wait.insert(0, int(self.command_selected))
+                if isinstance(self.command_selected, str): int(self.command_selected)
+                self.entry_add_cmd_wait.insert(0, self.command_selected)
     def switch_all_screen_buttons_state(self):
         btns_main_screen = [self.btn_add_aut, self.btn_edit_nome_aut, self.btn_run_aut, self.btn_edit_aut, self.btn_del_aut]
         for btn in btns_main_screen:
