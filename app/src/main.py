@@ -5,6 +5,7 @@ from tkinter import ttk, messagebox
 import sys
 import os
 import pyautogui
+import pyperclip
 from pynput import keyboard, mouse
 from PIL import ImageTk, Image
 
@@ -231,7 +232,14 @@ class Funcs():
                     if subtype == 'Pressionar':
                         pyautogui.press(check_cmd(cmd))
                     elif subtype == 'Escrever':
-                        pyautogui.write(cmd)
+                        # o comando write pode não funcionar bem com algumas teclas específicas
+                        # em teclados não ingleses
+                        #pyautogui.write(cmd, interval=0.05)
+                        #pyautogui.typewrite(cmd, interval=0.05)
+                        # portanto segue a solução abaixo
+                        pyperclip.copy(cmd)
+                        pyautogui.hotkey('ctrl', 'v')
+                        pyperclip.copy('')
                     elif subtype == 'Segurar':
                         pyautogui.keyDown(check_cmd(cmd))
                     elif subtype == 'Soltar':
@@ -389,10 +397,9 @@ class Application(Funcs):
     def screen(self):
         self.root.title(self.title)
         self.root.configure(background=self.root_bg_color)
-        self.root.geometry("800x700")
+        self.root.geometry("700x600")
         self.root.resizable(True, True)
-        self.root.maxsize(width=1100, height=900)
-        self.root.minsize(width=400, height=300)
+        self.root.minsize(width=600, height=500)
     def edit_screen(self):
         if self.aut_name_selected == '':
             self.error_txt = 'Nenhuma automação selecionada'
@@ -442,7 +449,7 @@ class Application(Funcs):
     def widgets_frame_1(self):
         # tamanho da imagem original: 360X360
         logo = Image.open('logo-trout.png')
-        resized = logo.resize((160,160))
+        resized = logo.resize((130,130))
         #self.logo_img = PhotoImage(file=resource_path('logo-link-water.png'))
         self.logo_img = ImageTk.PhotoImage(resized)
         self.logo = Label(self.frame_1, image=self.logo_img, bg=self.frame_bg_color)
