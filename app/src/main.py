@@ -451,7 +451,6 @@ class Application(Funcs):
         # tamanho da imagem original: 360X360
         logo = Image.open('logo-trout.png')
         resized = logo.resize((130,130))
-        #self.logo_img = PhotoImage(file=resource_path('logo-link-water.png'))
         self.logo_img = ImageTk.PhotoImage(resized)
         self.logo = Label(self.frame_1, image=self.logo_img, bg=self.frame_bg_color)
         self.logo.place(relx=0, rely=0)
