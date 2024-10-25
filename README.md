@@ -28,6 +28,7 @@ ele gera uma pasta dist com o exe, ele não roda se os arquivos que ele importa 
 ## Gerar executável com autoPytoexe
 no terminal entrar na pasta src/
 rodar comando: autopytoexe
+se falhar tentar o comando: py -m auto_py_to_exe (windows nesse caso)
 Script Location ->  escolher o arquivo principal
 One File -> Selecionar One Directory
 Console Window -> Window Based (hide the console)
