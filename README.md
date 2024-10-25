@@ -21,7 +21,9 @@ Pode ser que dentro do ambiente virtual o pip não funcione, se isso acontecer:
 ## Gerar executável com pyinstaller
 procedimento pego do vídeo do python simplified -> link no obsidian
 rodar:
-pyinstaller --name nome_do_arquivo_exe --onefile --windowed main.py
+pyinstaller --name nome_do_arquivo_exe --onefile --windowed --icon=imagem.ico main.py
+no caso do projeto, rodar:
+pyinstaller --name BotCollie --onefile --windowed --icon=logo-icon.ico main.py
 
 ele gera uma pasta dist com o exe, ele não roda se os arquivos que ele importa não estiver na mesma pasta (fotos, fontes e assets)
 

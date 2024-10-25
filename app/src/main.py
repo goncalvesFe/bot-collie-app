@@ -385,7 +385,7 @@ class Application(Funcs):
         root.mainloop()
     def config_constants(self):
         self.app_version = '-beta'
-        self.title = f'Bot Collie {self.app_version}'
+        self.title = f'BotCollie {self.app_version}'
         #trout #4c5760
         #cornflower #89ace3
         #linkwater #e1eff6
