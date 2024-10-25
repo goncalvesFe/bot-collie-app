@@ -384,8 +384,8 @@ class Application(Funcs):
         self.update_tree()
         root.mainloop()
     def config_constants(self):
-        self.app_version = '1.0'
-        self.title = f'Bot Collie - v_{self.app_version}'
+        self.app_version = '-beta'
+        self.title = f'Bot Collie {self.app_version}'
         #trout #4c5760
         #cornflower #89ace3
         #linkwater #e1eff6
