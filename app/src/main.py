@@ -400,7 +400,7 @@ class Application(Funcs):
         self.root.geometry("700x600")
         self.root.resizable(True, True)
         self.root.minsize(width=600, height=500)
-        self.root.iconbitmap('logo-icon.ico')
+        self.root.iconbitmap('assets/logo-icon.ico')
     def edit_screen(self):
         if self.aut_name_selected == '':
             self.error_txt = 'Nenhuma automação selecionada'
@@ -449,7 +449,7 @@ class Application(Funcs):
         self.frame_2.place(relx=0.02, rely=0.3, relwidth=0.96, relheight=0.68)
     def widgets_frame_1(self):
         # tamanho da imagem original: 360X360
-        logo = Image.open('logo-trout.png')
+        logo = Image.open('assets/logo-trout.png')
         resized = logo.resize((130,130))
         self.logo_img = ImageTk.PhotoImage(resized)
         self.logo = Label(self.frame_1, image=self.logo_img, bg=self.frame_bg_color)
