@@ -380,7 +380,8 @@ class Application(Funcs):
         self.screen_frames()
         self.widgets_frame_1()
         self.widgets_frame_2()
-        self.create_tables()
+        # para criar um novo banco de dados excluir o arquivo bot-collie.db e descomentar a linha abaixo
+        #self.create_tables()
         self.update_tree()
         root.mainloop()
     def config_constants(self):
