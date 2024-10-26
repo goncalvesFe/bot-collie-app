@@ -37,7 +37,7 @@ root = Tk()
 
 class Funcs():
     def connect_database(self):
-        self.conn = sqlite3.connect('bot-collie.db', check_same_thread=False)
+        self.conn = sqlite3.connect('data/bot-collie.db', check_same_thread=False)
         self.cursor = self.conn.cursor()
     def disconnect_database(self):
         self.conn.close()
