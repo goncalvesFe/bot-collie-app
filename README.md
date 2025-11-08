@@ -1,4 +1,4 @@
-# bot-collie-app versão 0
+# bot-collie-app versão 0 (beta)
 ## Para ativar ambiente virtual
 cd app
 source bin/activate
