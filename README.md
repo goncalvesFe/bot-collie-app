@@ -1,4 +1,11 @@
-# bot-collie-app versão 0 (beta)
+# bot-collie-app versão 1
+
+## Versão 1
+Essa versão tem o objetivo de tornar esse aplicativo um produto por assinatura.
+É uma melhoria de UX e design em relação a versão anterior: versão 0 - beta.
+E também haverá um refactor geral do código.
+Em suma, tornar esse software profissional.
+
 ## Para ativar ambiente virtual
 cd app
 source bin/activate
