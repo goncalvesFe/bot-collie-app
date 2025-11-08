@@ -8,7 +8,7 @@ Em suma, tornar esse software profissional.
 
 ## Para ativar ambiente virtual
 cd app
-source bin/activate
+source bin/activate ou bin/activate
 
 ## Para rodar projeto
 entrar no diretório /src
@@ -18,7 +18,10 @@ rodar:python3 main.py
 deactivate
 
 ## Rodar o projeto
-python3 src/main.py
+python3 src/main.py ou py src/main.py
+
+## Criando novo banco de dados
+Para criar um novo banco de dados excluir o arquivo bot-collie.db e descomentar a linha 384
 
 ## Usando pip no windows
 Pode ser que dentro do ambiente virtual o pip não funcione, se isso acontecer:
