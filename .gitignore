@@ -6,6 +6,6 @@ lib/
 lib64/
 output/
 .vscode/
-app/src/__pycache__
+__pycache__
 bot-collie.db
 BotCollie.spec
