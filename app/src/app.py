@@ -9,7 +9,7 @@ class App(ctk.CTk):
 
         # Configuração da janela
         self.title("BotCollie")
-        self.geometry("800x600")
+        self.geometry("800x700")
 
         # Configuração do tema
         ctk.set_appearance_mode("dark")
