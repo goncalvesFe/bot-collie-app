@@ -1,11 +1,19 @@
 import customtkinter as ctk
 from views.pages.login_page import LoginPage
 from views.pages.main_page import MainPage
+from controllers.main_controller import MainController
+from database.connection import DatabaseConnection
 
 
 class App(ctk.CTk):
     def __init__(self):
         super().__init__()
+
+        # Inicializa banco de dados
+        DatabaseConnection.initialize_database()
+
+        # Controller
+        self.controller = MainController()
 
         # Configuração da janela
         self.title("BotCollie")
