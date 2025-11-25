@@ -1,39 +1,26 @@
 # Conecta views e services
 from typing import Optional, List, Dict
-from services.business_logic import AuthService, AutomationService
-from database.models import User
+from services.business_logic import AutomationService
+
 
 class MainController:
     def __init__(self):
-        self.current_user: Optional[User] = None
+        #self.current_user: Optional[User] = None
+        pass
 
     def login(self, username: str, password: str) -> bool:
         """Realiza login"""
-        user = AuthService.authenticate(username, password)
-        if user:
-            self.current_user = user
-            return True
-        return False
+        return True
 
     def logout(self):
         """Realiza logout"""
-        self.current_user = None
+        pass
 
-    def get_automations(self) -> List[Dict]:
-        """Retorna automações do usuário logado"""
-        if not self.current_user:
-            return []
-        return AutomationService.get_user_automations(self.current_user.id)
-
-    def create_automation(self, nome: str, descricao: str = "", 
-                         script_path: str = "") -> bool:
+    def create_automation(self) -> bool:
         """Cria nova automação"""
-        if not self.current_user:
-            return False
-        result = AutomationService.create_automation(
-            self.current_user.id, nome, descricao, script_path
-        )
-        return result is not None
+        # Inicia listeners para captura de comandos
+        AutomationService.init_listeners()
+        return True
 
     def run_automation(self, automation_id: int) -> bool:
         """Executa automação"""

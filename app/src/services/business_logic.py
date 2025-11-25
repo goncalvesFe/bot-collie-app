@@ -1,55 +1,93 @@
-# Regras de negócio
-import hashlib
 from typing import Optional, List, Dict
-from database.repositories import (
-    UserRepository, 
-    AutomationRepository, 
-    ExecutionLogRepository
-)
-from database.models import User, Automation, ExecutionLog
+from pynput import keyboard, mouse
+import pyautogui
+import time
+from database.repositories import AutomationRepository, CommandRepository
+from database.models import Automation, Command
 import subprocess
 import threading
 
-class AuthService:
-    @staticmethod
-    def hash_password(password: str) -> str:
-        """Cria hash da senha"""
-        return hashlib.sha256(password.encode()).hexdigest()
-
-    @staticmethod
-    def register_user(username: str, password: str) -> bool:
-        """Registra novo usuário"""
-        try:
-            user = User(
-                username=username,
-                password_hash=AuthService.hash_password(password)
-            )
-            UserRepository.create(user)
-            return True
-        except Exception as e:
-            print(f"Erro ao registrar usuário: {e}")
-            return False
-
-    @staticmethod
-    def authenticate(username: str, password: str) -> Optional[User]:
-        """Autentica usuário"""
-        user = UserRepository.find_by_username(username)
-        if user and user.password_hash == AuthService.hash_password(password):
-            return user
-        return None
 
 class AutomationService:
     @staticmethod
-    def create_automation(user_id: int, nome: str, descricao: str = "", 
-                         script_path: str = "") -> Optional[int]:
+    def init_listeners():
+        # estrutura dos comandos adicionados sempre será:
+        # commands = [['type', 'subtype', 'cmd'], ['type', 'subtype', 'cmd'], ...]
+        commands = []
+        pyautogui.hotkey('win', 'd')
+
+        def on_press(key):
+            if key != keyboard.Key.esc:
+                commands.append(['keyboard', 'Pressionar', key])
+        
+        def on_release(key):
+            if key == keyboard.Key.esc:
+                mouse_listener.stop()
+                
+                # Criar nova automação
+                from datetime import datetime
+                automation_name = f"Nova Automação {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+                automation = Automation(name=automation_name, description="Automação criada via gravação")
+                automation_id = AutomationRepository.create(automation)
+                
+                if automation_id:
+                    print(f"Automação '{automation_name}' criada com ID: {automation_id}")
+                    # Salvar comandos
+                    for index, cmd in enumerate(commands):
+                        # cmd structure: ['type', 'subtype', 'cmd']
+                        new_command = Command(
+                            automation_id=automation_id,
+                            type=cmd[0],
+                            subtype=cmd[1],
+                            command=str(cmd[2]),
+                            cmdOrder=index
+                        )
+                        CommandRepository.create(new_command)
+                    print(f'{len(commands)} comandos salvos com sucesso!')
+                
+                return False
+
+        def on_move(x, y):
+            # print('Pointer moved to {0}'.format((x, y)))
+            pass
+
+        def on_click(x, y, button, pressed):
+            btn = 'Esquerdo' if button.name == 'left' else 'Direito'
+            if pressed:
+                # command: ‘x,y,button,num’ 
+                mouse_click = f'{x},{y},{btn},1'
+                commands.append(['mouse', 'click', mouse_click])
+
+        def on_scroll(x, y, dx, dy):
+            hscroll_map = {0: 0, -1: 'para direita', 1: 'para esquerda'}
+            vscroll_map = {0: 0, -1: 'para baixo', 1: 'para cima'}
+
+            hscroll = hscroll_map.get(dx, dx)
+            vscroll = vscroll_map.get(dy, dy)
+            
+            # command: ‘x,y,dx,dy’
+            mouse_scroll = f'{x},{y},{hscroll},{vscroll}' # type: ignore
+            commands.append(['mouse', 'scroll', mouse_scroll])
+
+        keyboard_listener = keyboard.Listener(on_press=on_press, on_release=on_release) # type: ignore
+        mouse_listener = mouse.Listener(on_move=on_move, on_click=on_click, on_scroll=on_scroll)
+
+        keyboard_listener.start()
+        mouse_listener.start()
+
+        # Aguarda o teclado terminar (quando esc for pressionado)
+        #keyboard_listener.join()
+        # Para o mouse também
+        #mouse_listener.stop()
+        return True
+
+    @staticmethod
+    def create_automation(name: str, description: str = "") -> Optional[int]:
         """Cria nova automação"""
         try:
             automation = Automation(
-                user_id=user_id,
-                nome=nome,
-                descricao=descricao,
-                script_path=script_path,
-                status="inativa"
+                name=name,
+                description=description,
             )
             return AutomationRepository.create(automation)
         except Exception as e:
@@ -57,80 +95,14 @@ class AutomationService:
             return None
 
     @staticmethod
-    def get_user_automations(user_id: int) -> List[Dict]:
-        """Retorna automações com última execução"""
-        automations = AutomationRepository.find_all_by_user(user_id)
-        result = []
-        
-        for auto in automations:
-            last_exec = ExecutionLogRepository.get_last_execution(auto.id)
-            result.append({
-                "id": auto.id,
-                "nome": auto.nome,
-                "descricao": auto.descricao,
-                "status": auto.status,
-                "ultima_execucao": last_exec.finished_at if last_exec else "Nunca executada"
-            })
-        
-        return result
-
-    @staticmethod
     def execute_automation(automation_id: int) -> bool:
-        """Executa automação em thread separada"""
-        automation = AutomationRepository.find_by_id(automation_id)
-        if not automation or not automation.script_path:
-            return False
-
-        # Cria log de início
-        log = ExecutionLog(
-            automation_id=automation_id,
-            status="em_execucao"
-        )
-        log_id = ExecutionLogRepository.create(log)
-
-        # Executa em thread
-        thread = threading.Thread(
-            target=AutomationService._run_script,
-            args=(automation.script_path, log_id)
-        )
-        thread.start()
+        """Executar a automação"""
         return True
-
-    @staticmethod
-    def _run_script(script_path: str, log_id: int):
-        """Executa script e atualiza log"""
-        try:
-            result = subprocess.run(
-                ["python", script_path],
-                capture_output=True,
-                text=True,
-                timeout=300  # 5 minutos timeout
-            )
-            
-            status = "sucesso" if result.returncode == 0 else "erro"
-            log_output = result.stdout
-            error_msg = result.stderr if result.returncode != 0 else None
-            
-            ExecutionLogRepository.update_execution(
-                log_id, status, log_output, error_msg
-            )
-        except Exception as e:
-            ExecutionLogRepository.update_execution(
-                log_id, "erro", "", str(e)
-            )
 
     @staticmethod
     def update_automation(automation_id: int, **kwargs) -> bool:
         """Atualiza automação"""
-        automation = AutomationRepository.find_by_id(automation_id)
-        if not automation:
-            return False
-
-        for key, value in kwargs.items():
-            if hasattr(automation, key):
-                setattr(automation, key, value)
-
-        return AutomationRepository.update(automation)
+        return True
 
     @staticmethod
     def delete_automation(automation_id: int) -> bool:

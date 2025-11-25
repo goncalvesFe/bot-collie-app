@@ -1,9 +1,13 @@
 import customtkinter as ctk
+from controllers.main_controller import MainController
 
 
 class MainPage(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
+
+         # Controller to handle business operations
+        self.controller = MainController()
 
         # Frame principal
         self.frame = ctk.CTkFrame(master=self)
@@ -146,7 +150,7 @@ class MainPage(ctk.CTkFrame):
 
     def add_automation(self):
         """Função para adicionar nova automação"""
-        print("Adicionando nova automação")
+        self.controller.create_automation()
 
     def run_automation(self, nome):
         """Função para rodar a automação"""
